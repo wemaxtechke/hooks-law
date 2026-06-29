@@ -211,6 +211,112 @@
             height: auto;
         }
 
+        /* Calculation Selection & Solution Styles */
+        .calc-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .calc-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .calc-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .calc-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .solution-card {
+            margin-top: 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .solution-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            border-bottom: 2px solid var(--primary-color);
+            display: inline-block;
+            padding-bottom: 0.25rem;
+        }
+
+        .math-block {
+            margin-bottom: 1.5rem;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 1.1rem;
+            line-height: 1.2;
+        }
+
+        .math-step-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1rem;
+        }
+
+        .formula-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            min-height: 3.5rem;
+        }
+
+        .formula-row span {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .formula-row sup {
+            position: relative;
+            top: -0.5em;
+            font-size: 0.75em;
+            line-height: 0;
+            vertical-align: baseline;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 0.25rem;
+        }
+
+        .numerator {
+            border-bottom: 1px solid currentColor;
+            padding: 0 0.25rem;
+            text-align: center;
+        }
+
+        .denominator {
+            padding: 0 0.25rem;
+            text-align: center;
+        }
+
         @media (max-width: 900px) {
             main {
                 flex-direction: column;
@@ -234,9 +340,23 @@
                 ⚠️ ELASTIC LIMIT EXCEEDED! <br>
                 The material has reached its yield point. Hooke's Law is no longer proportional.
             </div>
+            <div id="solutionContainer" style="width: 100%;"></div>
         </section>
 
         <section class="controls-container">
+            <div class="card">
+                <h3 style="margin-bottom: 0.5rem;">Calculation Selection</h3>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">What is being calculated? Select all that apply:</p>
+                <div class="calc-selector" id="calcSelector">
+                    <button class="calc-btn" data-calc="force">Force (F)</button>
+                    <button class="calc-btn" data-calc="extension">Extension (ΔL)</button>
+                    <button class="calc-btn mode-wire-only" data-calc="stress">Stress (σ)</button>
+                    <button class="calc-btn mode-wire-only" data-calc="strain">Strain (ε)</button>
+                    <button class="calc-btn mode-wire-only" data-calc="young">Young's Modulus (E)</button>
+                    <button class="calc-btn" data-calc="epe">Elastic Potential Energy (U)</button>
+                </div>
+            </div>
+
             <div class="card">
                 <h3 style="margin-bottom: 1rem;">Simulation Controls</h3>
 
@@ -352,7 +472,8 @@
             stress: 0,
             strain: 0,
             youngsModulus: 0,
-            epe: 0
+            epe: 0,
+            selectedCalcs: []
         };
 
         let visualState = {
@@ -466,6 +587,21 @@
                         elements.massNumber.max = 5000;
                         syncInputs('forceInput', state.forceInput);
                     }
+                }
+            });
+
+            document.getElementById('calcSelector').addEventListener('click', (e) => {
+                if (e.target.dataset.calc) {
+                    const calc = e.target.dataset.calc;
+                    const index = state.selectedCalcs.indexOf(calc);
+                    if (index > -1) {
+                        state.selectedCalcs.splice(index, 1);
+                        e.target.classList.remove('active');
+                    } else {
+                        state.selectedCalcs.push(calc);
+                        e.target.classList.add('active');
+                    }
+                    update();
                 }
             });
         }
@@ -585,6 +721,98 @@
             } else {
                 elements.warning.style.display = 'none';
             }
+        }
+
+        function renderSolution() {
+            const container = document.getElementById('solutionContainer');
+            if (state.selectedCalcs.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="solution-card"><div class="solution-title">Solution:</div>';
+            let stepCount = 1;
+
+            // Define order of calculations
+            const order = ['force', 'extension', 'stress', 'strain', 'young', 'epe'];
+            const activeCalcs = order.filter(c => state.selectedCalcs.includes(c));
+
+            activeCalcs.forEach((calc) => {
+                if (calc === 'force') {
+                    const forceStep = state.inputMode === 'mass'
+                        ? `<div class="math-block">
+                            <div class="math-step-title">${stepCount++}. Calculate Force (F):</div>
+                            <div class="formula-row">
+                                <span>F = m &times; g = ${state.mass.toFixed(1)} kg &times; ${G} m/s<sup>2</sup> = ${formatScientific(state.force, 2)} N</span>
+                            </div>
+                           </div>`
+                        : `<div class="math-block">
+                            <div class="math-step-title">${stepCount++}. Force (F):</div>
+                            <div class="formula-row">
+                                <span>F = ${formatScientific(state.force, 2)} N (Input value)</span>
+                            </div>
+                           </div>`;
+                    html += forceStep;
+                } else if (calc === 'extension') {
+                    html += `<div class="math-block">
+                        <div class="math-step-title">${stepCount++}. Calculate Extension (&Delta;L):</div>
+                        <div class="formula-row">
+                            <span>&Delta;L = </span>
+                            <div class="fraction"><div class="numerator">F</div><div class="denominator">k</div></div>
+                            <span> = </span>
+                            <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(state.k, 2)} N/m</div></div>
+                            <span> = ${formatScientific(state.extension, 4)} m</span>
+                        </div>
+                    </div>`;
+                } else if (calc === 'stress' && state.simulationMode === 'wire') {
+                    html += `<div class="math-block">
+                        <div class="math-step-title">${stepCount++}. Calculate Stress (&sigma;):</div>
+                        <div class="formula-row">
+                            <span>&sigma; = </span>
+                            <div class="fraction"><div class="numerator">F</div><div class="denominator">A</div></div>
+                            <span> = </span>
+                            <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(state.area, 2)} m<sup>2</sup></div></div>
+                            <span> = ${formatScientific(state.stress, 2)} N/m<sup>2</sup></span>
+                        </div>
+                    </div>`;
+                } else if (calc === 'strain' && state.simulationMode === 'wire') {
+                    html += `<div class="math-block">
+                        <div class="math-step-title">${stepCount++}. Calculate Strain (&epsilon;):</div>
+                        <div class="formula-row">
+                            <span>&epsilon; = </span>
+                            <div class="fraction"><div class="numerator">&Delta;L</div><div class="denominator">L₀</div></div>
+                            <span> = </span>
+                            <div class="fraction"><div class="numerator">${formatScientific(state.extension, 4)} m</div><div class="denominator">${state.l0.toFixed(2)} m</div></div>
+                            <span> = ${formatScientific(state.strain, 4)}</span>
+                        </div>
+                    </div>`;
+                } else if (calc === 'young' && state.simulationMode === 'wire') {
+                    html += `<div class="math-block">
+                        <div class="math-step-title">${stepCount++}. Calculate Young's Modulus (E):</div>
+                        <div class="formula-row">
+                            <span>E = </span>
+                            <div class="fraction"><div class="numerator">Stress</div><div class="denominator">Strain</div></div>
+                            <span> = </span>
+                            <div class="fraction"><div class="numerator">${formatScientific(state.stress, 2)} N/m<sup>2</sup></div><div class="denominator">${formatScientific(state.strain, 4)}</div></div>
+                            <span> &approx; ${formatScientific(state.youngsModulus, 2)} N/m<sup>2</sup></span>
+                        </div>
+                    </div>`;
+                } else if (calc === 'epe') {
+                    html += `<div class="math-block">
+                        <div class="math-step-title">${stepCount++}. Calculate Elastic Potential Energy (U):</div>
+                        <div class="formula-row">
+                            <span>U = </span>
+                            <div class="fraction"><div class="numerator">1</div><div class="denominator">2</div></div>
+                            <span> F &Delta;L = </span>
+                            <div class="fraction"><div class="numerator">1</div><div class="denominator">2</div></div>
+                            <span> &times; ${formatScientific(state.force, 2)} N &times; ${formatScientific(state.extension, 4)} m = ${formatScientific(state.epe, 4)} J</span>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
         }
 
         function drawSimulation() {
@@ -882,6 +1110,7 @@
         function update() {
             calculatePhysics();
             updateDashboard();
+            renderSolution();
         }
 
         function init() {
