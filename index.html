@@ -220,6 +220,31 @@
                 min-width: 100%;
             }
         }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toggle-group.multi-select .toggle-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calculation-item {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+            background: #f8fafc;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-radius: 0 8px 8px 0;
+        }
     </style>
 </head>
 <body>
@@ -234,9 +259,26 @@
                 ⚠️ ELASTIC LIMIT EXCEEDED! <br>
                 The material has reached its yield point. Hooke's Law is no longer proportional.
             </div>
+
+            <div id="calculationSteps" class="card" style="margin-top: 1.5rem; width: 100%; box-sizing: border-box; display: none;">
+                <h3 style="margin-bottom: 1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem;">Solution:</h3>
+                <div id="stepsContainer"></div>
+            </div>
         </section>
 
         <section class="controls-container">
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">What is being calculated?</h3>
+                <div class="toggle-group multi-select" id="calculationToggle">
+                    <button class="toggle-btn" data-calc="force">Force (F)</button>
+                    <button class="toggle-btn" data-calc="extension">Ext. (ΔL)</button>
+                    <button class="toggle-btn" data-calc="stress">Stress (σ)</button>
+                    <button class="toggle-btn" data-calc="strain">Strain (ε)</button>
+                    <button class="toggle-btn" data-calc="young">Young's (E)</button>
+                </div>
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: -0.5rem;">Select parameters to see step-by-step calculations.</p>
+            </div>
+
             <div class="card">
                 <h3 style="margin-bottom: 1rem;">Simulation Controls</h3>
 
@@ -352,7 +394,8 @@
             stress: 0,
             strain: 0,
             youngsModulus: 0,
-            epe: 0
+            epe: 0,
+            selectedCalculations: []
         };
 
         let visualState = {
@@ -361,6 +404,8 @@
             targetExtension: 0,
             velocity: 0
         };
+
+        let lastSelectionJson = "";
 
         // DOM Elements
         const elements = {
@@ -391,7 +436,10 @@
             warning: document.getElementById('elasticLimitWarning'),
             modeToggle: document.getElementById('modeToggle'),
             inputToggle: document.getElementById('inputToggle'),
-            inputLabel: document.getElementById('inputLabel')
+            inputLabel: document.getElementById('inputLabel'),
+            calculationToggle: document.getElementById('calculationToggle'),
+            calculationSteps: document.getElementById('calculationSteps'),
+            stepsContainer: document.getElementById('stepsContainer')
         };
 
         // Initialize
@@ -466,6 +514,20 @@
                         elements.massNumber.max = 5000;
                         syncInputs('forceInput', state.forceInput);
                     }
+                }
+            });
+
+            elements.calculationToggle.addEventListener('click', (e) => {
+                if (e.target.dataset.calc) {
+                    const calc = e.target.dataset.calc;
+                    if (state.selectedCalculations.includes(calc)) {
+                        state.selectedCalculations = state.selectedCalculations.filter(c => c !== calc);
+                        e.target.classList.remove('active');
+                    } else {
+                        state.selectedCalculations.push(calc);
+                        e.target.classList.add('active');
+                    }
+                    update();
                 }
             });
         }
@@ -879,9 +941,78 @@
             requestAnimationFrame(animate);
         }
 
+        function updateStepByStepCalculations() {
+            const logicalOrder = ['force', 'extension', 'stress', 'strain', 'young'];
+            const activeCalcs = logicalOrder.filter(c => state.selectedCalculations.includes(c));
+
+            if (activeCalcs.length === 0) {
+                elements.calculationSteps.style.display = 'none';
+                lastSelectionJson = "";
+                return;
+            }
+            elements.calculationSteps.style.display = 'block';
+
+            const currentSelectionJson = JSON.stringify(activeCalcs);
+            if (currentSelectionJson !== lastSelectionJson) {
+                // Rebuild structure only when selection changes
+                let html = '';
+                activeCalcs.forEach((calc, index) => {
+                    html += `<div class="calculation-item" id="calc-item-${calc}" style="animation: fadeInUp 0.5s ease forwards; animation-delay: ${index * 0.1}s; opacity: 0; margin-bottom: 1.5rem;"></div>`;
+                });
+                elements.stepsContainer.innerHTML = html;
+                lastSelectionJson = currentSelectionJson;
+            }
+
+            // Update content of existing items to prevent animation reset
+            activeCalcs.forEach(calc => {
+                const item = document.getElementById(`calc-item-${calc}`);
+                if (!item) return;
+
+                let content = '';
+                if (calc === 'force') {
+                    if (state.inputMode === 'mass') {
+                        content = `
+                            <strong>Calculate Force (F):</strong><br>
+                            F = m &times; g = ${state.mass.toFixed(1)} kg &times; ${G} m/s&sup2; = <strong>${formatScientific(state.force, 2)} N</strong>
+                        `;
+                    } else {
+                        content = `
+                            <strong>Input Force (F):</strong><br>
+                            F = <strong>${formatScientific(state.force, 2)} N</strong>
+                        `;
+                    }
+                } else if (calc === 'extension') {
+                    content = `
+                        <strong>Calculate Extension (&Delta;L):</strong><br>
+                        &Delta;L = F / k = ${formatScientific(state.force, 2)} N / ${formatScientific(state.k, 2)} N/m = <strong>${formatScientific(state.extension, 4)} m</strong>
+                    `;
+                } else if (calc === 'stress') {
+                    content = `
+                        <strong>Calculate Stress (&sigma;):</strong><br>
+                        &sigma; = F / A = ${formatScientific(state.force, 2)} N / ${formatScientific(state.area, 2)} m&sup2; = <strong>${formatScientific(state.stress, 2)} N/m&sup2;</strong>
+                    `;
+                } else if (calc === 'strain') {
+                    content = `
+                        <strong>Calculate Strain (&epsilon;):</strong><br>
+                        &epsilon; = &Delta;L / L₀ = ${formatScientific(state.extension, 4)} m / ${state.l0.toFixed(2)} m = <strong>${formatScientific(state.strain, 4)}</strong>
+                    `;
+                } else if (calc === 'young') {
+                    content = `
+                        <strong>Calculate Young's Modulus (E):</strong><br>
+                        E = &sigma; / &epsilon; = ${formatScientific(state.stress, 2)} N/m&sup2; / ${formatScientific(state.strain, 4)} = <strong>${formatScientific(state.youngsModulus, 2)} N/m&sup2;</strong>
+                    `;
+                }
+
+                if (item.innerHTML !== content) {
+                    item.innerHTML = content;
+                }
+            });
+        }
+
         function update() {
             calculatePhysics();
             updateDashboard();
+            updateStepByStepCalculations();
         }
 
         function init() {
