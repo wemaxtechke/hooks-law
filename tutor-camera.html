@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Camera - Hooke's Law</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --accent-color: #3b82f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .nav-links a.active {
+            opacity: 1;
+            border-bottom: 2px solid white;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            padding: 2rem;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .left-column {
+            flex: 1.5;
+            min-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .right-column {
+            flex: 1;
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #videoViewport {
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transform: scaleX(-1); /* Mirror view */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .feedback-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feedback-display {
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-top: 1rem;
+            flex: 1;
+            min-height: 300px;
+            white-space: pre-wrap;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #1d4ed8;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .warning {
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            border: 1px solid #fecaca;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .left-column, .right-column {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hooke's Law & Elasticity</h1>
+        <nav class="nav-links">
+            <a href="index.html">Simulation</a>
+            <a href="tutor-camera.html" class="active">Tutor Camera</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="left-column">
+            <video id="videoViewport" autoplay playsinline></video>
+            <button id="analyzeBtn" class="btn">Analyze My Workspace</button>
+            <div id="aiPrompt" class="warning" style="display: none;">
+                ⚠️ <strong>Built-in AI Not Detected:</strong> To enable this feature, please:
+                <ol style="text-align: left; margin-top: 0.5rem;">
+                    <li>Ensure you are using Chrome Dev or Canary (v127+).</li>
+                    <li>Go to <code>chrome://flags/#optimization-guide-on-device-model</code> and set to "Enabled BypassPerfRequirement".</li>
+                    <li>Go to <code>chrome://flags/#prompt-api-for-gemini-nano</code> and set to "Enabled".</li>
+                    <li>Restart Chrome and wait for the model to download in <code>chrome://components</code> (Optimization Guide On Device Model).</li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="right-column">
+            <div class="card feedback-card">
+                <h3 style="margin: 0;">Tutor Feedback</h3>
+                <div id="feedbackDisplay" class="feedback-display">
+                    Welcome to the AI Tutor!
+
+                    Hold up your physical workbook to the camera, ensuring your calculations are clearly visible, and click "Analyze My Workspace".
+
+                    The on-device AI will review your Hooke's Law steps and provide instant guidance.
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <canvas id="captureCanvas" style="display: none;"></canvas>
+
+    <script>
+        const video = document.getElementById('videoViewport');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const feedbackDisplay = document.getElementById('feedbackDisplay');
+        const aiPrompt = document.getElementById('aiPrompt');
+        const canvas = document.getElementById('captureCanvas');
+
+        const SYSTEM_CONTEXT = `Knowledge Base Reference Rules:
+- Hooke's Law formula is F = k * ΔL (or F = kx).
+- If calculating Force (F), check if they correctly multiplied spring constant (k) by extension (ΔL).
+- If calculating Extension (ΔL), the step must look like ΔL = F / k.
+- If solving for Mass (m) from Force, F = m * g where g = 9.8 m/s². Therefore m = F / 9.8.`;
+
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                feedbackDisplay.textContent = "Error: Could not access camera. Please ensure permissions are granted and you have a camera connected.";
+            }
+        }
+
+        function checkAI() {
+            if (!window.ai || !window.ai.aiLanguageModel) {
+                aiPrompt.style.display = 'block';
+                analyzeBtn.disabled = true;
+                return false;
+            }
+            return true;
+        }
+
+        async function analyzeFrame() {
+            if (!checkAI()) return;
+
+            feedbackDisplay.textContent = "Analyzing...";
+            analyzeBtn.disabled = true;
+
+            // Capture frame from video to canvas
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            let session = null;
+            try {
+                // Initialize the AI session with multimodal capabilities
+                session = await window.ai.aiLanguageModel.create({
+                    systemPrompt: SYSTEM_CONTEXT,
+                    expectedInputs: [{ type: "text" }, { type: "image" }]
+                });
+
+                // Bind the user message content array wrapping both the instructional string and the raw HTMLCanvasElement
+                const response = await session.prompt([
+                    "Review this student work. Identify if the calculation is correct or where they went wrong.",
+                    canvas
+                ]);
+
+                feedbackDisplay.textContent = response;
+            } catch (err) {
+                console.error("AI Analysis error:", err);
+                feedbackDisplay.textContent = "Error during analysis: " + err.message + "\n\nNote: Multimodal support in window.ai is experimental and may require specific Chrome versions or flags.";
+            } finally {
+                if (session) {
+                    try {
+                        session.destroy();
+                    } catch (e) {
+                        console.error("Error destroying session:", e);
+                    }
+                }
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        analyzeBtn.addEventListener('click', analyzeFrame);
+
+        // Initialize
+        window.addEventListener('load', () => {
+            initCamera();
+            checkAI();
+        });
+    </script>
+</body>
+</html>
