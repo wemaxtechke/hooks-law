@@ -100,6 +100,33 @@
             font-size: 0.9rem;
         }
 
+        .toggle-group {
+            display: flex;
+            background: #e2e8f0;
+            padding: 0.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            border: none;
+            background: none;
+            padding: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            color: #64748b;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
         .input-row {
             display: flex;
             align-items: center;
@@ -131,10 +158,10 @@
             border-radius: 8px;
             text-align: center;
             border: 1px solid #e2e8f0;
-        }
-
-        .result-item.full-width {
-            grid-column: span 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 80px;
         }
 
         .result-label {
@@ -204,32 +231,46 @@
         <section class="controls-container">
             <div class="card">
                 <h3 style="margin-bottom: 1rem;">Simulation Controls</h3>
+
                 <div class="control-group">
-                    <label for="massRange">Mass (m): <span id="massVal">5.0</span> kg</label>
-                    <div class="input-row">
-                        <input type="range" id="massRange" min="0" max="50" step="0.1" value="5.0">
-                        <input type="number" id="massNumber" min="0" max="50" step="0.1" value="5.0">
+                    <label>Simulation Mode</label>
+                    <div class="toggle-group" id="modeToggle">
+                        <button class="toggle-btn active" data-mode="spring">Spring</button>
+                        <button class="toggle-btn" data-mode="wire">Wire</button>
                     </div>
                 </div>
+
+                <div class="control-group">
+                    <label id="inputLabel">Input: Mass (m)</label>
+                    <div class="toggle-group" id="inputToggle">
+                        <button class="toggle-btn active" data-input="mass">Mass (kg)</button>
+                        <button class="toggle-btn" data-input="force">Force (N)</button>
+                    </div>
+                    <div class="input-row">
+                        <input type="range" id="massRange" min="0" max="500" step="0.1" value="5.0">
+                        <input type="number" id="massNumber" min="0" max="500" step="0.1" value="5.0">
+                    </div>
+                </div>
+
                 <div class="control-group">
                     <label for="kRange">Spring Constant (k): <span id="kVal">100</span> N/m</label>
                     <div class="input-row">
-                        <input type="range" id="kRange" min="10" max="500" step="1" value="100">
-                        <input type="number" id="kNumber" min="10" max="500" step="1" value="100">
+                        <input type="range" id="kRange" min="0.1" max="10000" step="0.1" value="100">
+                        <input type="number" id="kNumber" min="0.1" max="10000" step="0.1" value="100">
                     </div>
                 </div>
                 <div class="control-group">
                     <label for="aRange">Cross-sectional Area (A): <span id="aVal">0.0010</span> m²</label>
                     <div class="input-row">
-                        <input type="range" id="aRange" min="0.0001" max="0.01" step="0.0001" value="0.0010">
-                        <input type="number" id="aNumber" min="0.0001" max="0.01" step="0.0001" value="0.0010">
+                        <input type="range" id="aRange" min="1e-9" max="0.01" step="1e-9" value="0.0010">
+                        <input type="number" id="aNumber" min="1e-9" max="0.01" step="1e-9" value="0.0010">
                     </div>
                 </div>
                 <div class="control-group">
                     <label for="l0Range">Original Length (L₀): <span id="l0Val">2.0</span> m</label>
                     <div class="input-row">
-                        <input type="range" id="l0Range" min="0.5" max="5" step="0.1" value="2.0">
-                        <input type="number" id="l0Number" min="0.5" max="5" step="0.1" value="2.0">
+                        <input type="range" id="l0Range" min="0.1" max="10" step="0.01" value="2.0">
+                        <input type="number" id="l0Number" min="0.1" max="10" step="0.01" value="2.0">
                     </div>
                 </div>
             </div>
@@ -245,15 +286,19 @@
                 </div>
                 <div class="result-item">
                     <div class="result-label">Stress (σ)</div>
-                    <div class="result-value"><span id="stressRes">0.00</span> Pa</div>
+                    <div class="result-value"><span id="stressRes">0.00</span> N/m²</div>
                 </div>
                 <div class="result-item">
                     <div class="result-label">Strain (ε)</div>
                     <div class="result-value"><span id="strainRes">0.0000</span></div>
                 </div>
-                <div class="result-item full-width">
+                <div class="result-item">
+                    <div class="result-label">Elastic Potential Energy (U)</div>
+                    <div class="result-value"><span id="epeRes">0.00</span> J</div>
+                </div>
+                <div class="result-item">
                     <div class="result-label">Young's Modulus (Y)</div>
-                    <div class="result-value"><span id="youngRes">0.00</span> Pa</div>
+                    <div class="result-value"><span id="youngRes">0.00</span> N/m²</div>
                 </div>
             </div>
 
@@ -272,6 +317,9 @@
         // State
         let state = {
             mass: 5.0,
+            forceInput: 49,
+            inputMode: 'mass', // 'mass' or 'force'
+            simulationMode: 'spring', // 'spring' or 'wire'
             k: 100,
             area: 0.0010,
             l0: 2.0,
@@ -279,7 +327,8 @@
             extension: 0,
             stress: 0,
             strain: 0,
-            youngsModulus: 0
+            youngsModulus: 0,
+            epe: 0
         };
 
         let visualState = {
@@ -305,8 +354,12 @@
             extRes: document.getElementById('extRes'),
             stressRes: document.getElementById('stressRes'),
             strainRes: document.getElementById('strainRes'),
+            epeRes: document.getElementById('epeRes'),
             youngRes: document.getElementById('youngRes'),
-            warning: document.getElementById('elasticLimitWarning')
+            warning: document.getElementById('elasticLimitWarning'),
+            modeToggle: document.getElementById('modeToggle'),
+            inputToggle: document.getElementById('inputToggle'),
+            inputLabel: document.getElementById('inputLabel')
         };
 
         // Initialize
@@ -316,53 +369,109 @@
         }
 
         function setupEventListeners() {
-            // Mass
-            elements.massRange.addEventListener('input', (e) => syncInputs('mass', e.target.value));
-            elements.massNumber.addEventListener('input', (e) => syncInputs('mass', e.target.value));
+            // Mass / Force
+            elements.massRange.addEventListener('input', (e) => {
+                const key = state.inputMode === 'mass' ? 'mass' : 'forceInput';
+                syncInputs(key, e.target.value, e.target);
+            });
+            elements.massNumber.addEventListener('input', (e) => {
+                const key = state.inputMode === 'mass' ? 'mass' : 'forceInput';
+                syncInputs(key, e.target.value, e.target);
+            });
 
             // k
-            elements.kRange.addEventListener('input', (e) => syncInputs('k', e.target.value));
-            elements.kNumber.addEventListener('input', (e) => syncInputs('k', e.target.value));
+            elements.kRange.addEventListener('input', (e) => syncInputs('k', e.target.value, e.target));
+            elements.kNumber.addEventListener('input', (e) => syncInputs('k', e.target.value, e.target));
 
             // Area
-            elements.aRange.addEventListener('input', (e) => syncInputs('area', e.target.value));
-            elements.aNumber.addEventListener('input', (e) => syncInputs('area', e.target.value));
+            elements.aRange.addEventListener('input', (e) => syncInputs('area', e.target.value, e.target));
+            elements.aNumber.addEventListener('input', (e) => syncInputs('area', e.target.value, e.target));
 
             // Original Length
-            elements.l0Range.addEventListener('input', (e) => syncInputs('l0', e.target.value));
-            elements.l0Number.addEventListener('input', (e) => syncInputs('l0', e.target.value));
+            elements.l0Range.addEventListener('input', (e) => syncInputs('l0', e.target.value, e.target));
+            elements.l0Number.addEventListener('input', (e) => syncInputs('l0', e.target.value, e.target));
+
+            // Toggles
+            elements.modeToggle.addEventListener('click', (e) => {
+                if (e.target.dataset.mode) {
+                    state.simulationMode = e.target.dataset.mode;
+                    Array.from(elements.modeToggle.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    update();
+                }
+            });
+
+            elements.inputToggle.addEventListener('click', (e) => {
+                if (e.target.dataset.input) {
+                    state.inputMode = e.target.dataset.input;
+                    Array.from(elements.inputToggle.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    if (state.inputMode === 'mass') {
+                        elements.inputLabel.textContent = 'Input: Mass (m)';
+                        elements.massRange.max = 500;
+                        elements.massNumber.max = 500;
+                        syncInputs('mass', state.mass);
+                    } else {
+                        elements.inputLabel.textContent = 'Input: Force (F)';
+                        elements.massRange.max = 5000;
+                        elements.massNumber.max = 5000;
+                        syncInputs('forceInput', state.forceInput);
+                    }
+                }
+            });
         }
 
-        function syncInputs(key, value) {
-            const val = parseFloat(value) || 0;
-            state[key] = val;
+        function formatScientific(num, decimals = 2, html = true) {
+            if (num === 0) return "0";
+            if (Math.abs(num) >= 0.01 && Math.abs(num) < 100000) {
+                return num.toFixed(decimals);
+            }
+            const exp = num.toExponential(decimals);
+            const [m, e] = exp.split('e');
+            if (html) {
+                return `${m} \u00D7 10<sup>${parseInt(e)}</sup>`;
+            }
+            return `${m} \u00D7 10^${parseInt(e)}`;
+        }
 
-            if (key === 'mass') {
-                elements.massRange.value = val;
-                elements.massNumber.value = val;
-                elements.massVal.textContent = val.toFixed(1);
+        function syncInputs(key, value, source) {
+            const val = value === '' ? 0 : parseFloat(value);
+            state[key] = isNaN(val) ? 0 : val;
+
+            const updateEl = (el, v) => {
+                if (el !== source) el.value = v;
+            };
+
+            if (key === 'mass' || key === 'forceInput') {
+                updateEl(elements.massRange, state[key]);
+                updateEl(elements.massNumber, state[key]);
             } else if (key === 'k') {
-                elements.kRange.value = val;
-                elements.kNumber.value = val;
-                elements.kVal.textContent = val;
+                updateEl(elements.kRange, state.k);
+                updateEl(elements.kNumber, state.k);
+                elements.kVal.innerHTML = formatScientific(state.k, 2);
             } else if (key === 'area') {
-                elements.aRange.value = val;
-                elements.aNumber.value = val;
-                elements.aVal.textContent = val.toFixed(4);
+                updateEl(elements.aRange, state.area);
+                updateEl(elements.aNumber, state.area);
+                elements.aVal.innerHTML = formatScientific(state.area, 2);
             } else if (key === 'l0') {
-                elements.l0Range.value = val;
-                elements.l0Number.value = val;
-                elements.l0Val.textContent = val.toFixed(1);
+                updateEl(elements.l0Range, state.l0);
+                updateEl(elements.l0Number, state.l0);
+                elements.l0Val.innerHTML = formatScientific(state.l0, 2);
             }
 
             update();
         }
 
         function calculatePhysics() {
-            // F = m * g
-            state.force = state.mass * G;
+            // F = m * g or F = forceInput
+            if (state.inputMode === 'mass') {
+                state.force = state.mass * G;
+            } else {
+                state.force = state.forceInput;
+            }
 
-            // Hooke's Law: F = k * e => e = F / k
+            // Extension: e = F / k
             state.extension = state.force / state.k;
 
             // Stress: sigma = F / A
@@ -372,17 +481,20 @@
             state.strain = state.extension / state.l0;
 
             // Young's Modulus: Y = stress / strain
-            // Y = (F/A) / (deltaL / L0) = (k * L0) / A
-            // We calculate it this way to avoid division by zero when strain is 0
+            // Y = (F/A) / (deltaL / L0) = (F * L0) / (A * deltaL) = (k * L0) / A
             state.youngsModulus = (state.k * state.l0) / state.area;
+
+            // Elastic Potential Energy: EPE = 1/2 * F * e = 1/2 * k * e^2
+            state.epe = 0.5 * state.force * state.extension;
         }
 
         function updateDashboard() {
-            elements.forceRes.textContent = state.force.toFixed(2);
-            elements.extRes.textContent = state.extension.toFixed(2);
-            elements.stressRes.textContent = state.stress.toExponential(2);
-            elements.strainRes.textContent = state.strain.toFixed(4);
-            elements.youngRes.textContent = state.youngsModulus.toExponential(2);
+            elements.forceRes.innerHTML = formatScientific(state.force, 2);
+            elements.extRes.innerHTML = formatScientific(state.extension, 4);
+            elements.stressRes.innerHTML = formatScientific(state.stress, 2);
+            elements.strainRes.innerHTML = formatScientific(state.strain, 4);
+            elements.youngRes.innerHTML = formatScientific(state.youngsModulus, 2);
+            if (elements.epeRes) elements.epeRes.innerHTML = formatScientific(state.epe, 4);
 
             const totalLength = state.l0 + state.extension;
             if (totalLength > MAX_VISUAL_LENGTH || state.strain > 1.0) {
@@ -405,12 +517,17 @@
 
             // Draw Ruler
             const rulerX = width - 60;
+            const rulerGrad = ctx.createLinearGradient(rulerX, 0, rulerX + 10, 0);
+            rulerGrad.addColorStop(0, '#e2e8f0');
+            rulerGrad.addColorStop(0.5, '#f8fafc');
+            rulerGrad.addColorStop(1, '#cbd5e1');
+
+            ctx.fillStyle = rulerGrad;
+            ctx.fillRect(rulerX, 20, 10, height - 40);
+
             ctx.strokeStyle = '#94a3b8';
             ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(rulerX, 20);
-            ctx.lineTo(rulerX, height - 20);
-            ctx.stroke();
+            ctx.strokeRect(rulerX, 20, 10, height - 40);
 
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
@@ -426,65 +543,139 @@
             }
 
             // Draw Top Support
-            ctx.fillStyle = '#475569';
+            const supportGrad = ctx.createLinearGradient(startX - 60, startY - 10, startX - 60, startY);
+            supportGrad.addColorStop(0, '#334155');
+            supportGrad.addColorStop(1, '#475569');
+            ctx.fillStyle = supportGrad;
             ctx.fillRect(startX - 60, startY - 10, 120, 10);
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = 'rgba(0,0,0,0.2)';
+            ctx.shadowOffsetY = 2;
+            ctx.strokeRect(startX - 60, startY - 10, 120, 10);
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
 
-            // Draw Spring
+            // Draw Material
             const baseLength = state.l0 * 40; // Scale 1m = 40px
             const totalVisualLength = state.l0 + visualState.extension;
             const currentLength = totalVisualLength * 40;
-            const coils = 15;
-            const springWidth = 30;
+            const isBeyondLimit = state.strain > 1.0;
 
-            const isBeyondLimit = totalVisualLength > MAX_VISUAL_LENGTH || (visualState.extension / state.l0) > 1.0;
-            ctx.strokeStyle = isBeyondLimit ? '#ef4444' : '#334155';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
+            if (state.simulationMode === 'spring') {
+                const coils = 15;
+                const springWidth = 30;
+                ctx.strokeStyle = isBeyondLimit ? '#ef4444' : '#334155';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                for (let i = 0; i < coils; i++) {
+                    const y = startY + (i + 0.5) * (currentLength / coils);
+                    const x = startX + (i % 2 === 0 ? springWidth : -springWidth);
+                    ctx.lineTo(x, y);
+                }
+                ctx.lineTo(startX, startY + currentLength);
+                ctx.stroke();
+            } else {
+                // Wire mode
+                const wireWidth = Math.max(1, Math.sqrt(state.area) * 1000); // Visual thickness
+                const wireGrad = ctx.createLinearGradient(startX - wireWidth, 0, startX + wireWidth, 0);
+                wireGrad.addColorStop(0, '#b87333'); // Copper
+                wireGrad.addColorStop(0.5, '#e39b51');
+                wireGrad.addColorStop(1, '#8b4513');
 
-            for (let i = 0; i < coils; i++) {
-                const y = startY + (i + 0.5) * (currentLength / coils);
-                const x = startX + (i % 2 === 0 ? springWidth : -springWidth);
-                ctx.lineTo(x, y);
+                ctx.fillStyle = wireGrad;
+                ctx.fillRect(startX - wireWidth/2, startY, wireWidth, currentLength);
+                ctx.strokeStyle = isBeyondLimit ? '#ef4444' : '#5c3d2e';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(startX - wireWidth/2, startY, wireWidth, currentLength);
             }
-            ctx.lineTo(startX, startY + currentLength);
-            ctx.stroke();
 
             // Draw Weight
             const weightY = startY + currentLength;
-            const weightSize = 20 + Math.sqrt(visualState.mass) * 5;
-            ctx.fillStyle = '#1e293b';
+            const weightSize = 25 + Math.sqrt(visualState.mass) * 3;
+
+            const weightGrad = ctx.createRadialGradient(startX, weightY + weightSize/2, 5, startX, weightY + weightSize/2, weightSize);
+            weightGrad.addColorStop(0, '#475569');
+            weightGrad.addColorStop(1, '#1e293b');
+
+            ctx.fillStyle = weightGrad;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
             ctx.fillRect(startX - weightSize / 2, weightY, weightSize, weightSize);
+            ctx.shadowBlur = 0;
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 12px Arial';
+            ctx.font = 'bold 11px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(`${visualState.mass.toFixed(1)}kg`, startX, weightY + weightSize / 2 + 5);
+            const weightLabel = state.inputMode === 'mass' ? `${visualState.mass.toFixed(1)}kg` : `${state.force.toFixed(1)}N`;
+            ctx.fillText(weightLabel, startX, weightY + weightSize / 2 + 4);
 
-            // Draw Extension Indicator
-            if (visualState.extension > 0.01) {
+            // Draw Extension Indicator & Magnified View
+            if (visualState.extension > 0) {
+                const indicatorX = startX + 50;
                 ctx.setLineDash([5, 5]);
                 ctx.strokeStyle = '#10b981';
                 ctx.beginPath();
-                ctx.moveTo(startX + 40, startY + baseLength);
-                ctx.lineTo(startX + 80, startY + baseLength);
+                ctx.moveTo(startX + 10, startY + baseLength);
+                ctx.lineTo(indicatorX + 20, startY + baseLength);
                 ctx.stroke();
 
                 ctx.beginPath();
-                ctx.moveTo(startX + 40, weightY);
-                ctx.lineTo(startX + 80, weightY);
+                ctx.moveTo(startX + 10, weightY);
+                ctx.lineTo(indicatorX + 20, weightY);
                 ctx.stroke();
 
                 ctx.setLineDash([]);
                 ctx.beginPath();
-                ctx.moveTo(startX + 70, startY + baseLength);
-                ctx.lineTo(startX + 70, weightY);
+                ctx.moveTo(indicatorX + 10, startY + baseLength);
+                ctx.lineTo(indicatorX + 10, weightY);
                 ctx.stroke();
 
-                ctx.fillStyle = '#059669';
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText(`ΔL: ${visualState.extension.toFixed(2)}m`, startX + 75, startY + baseLength + (weightY - (startY + baseLength)) / 2);
+                // Magnified View for small extensions
+                if (state.extension < 0.1) {
+                    const magX = indicatorX + 60;
+                    const magY = (startY + baseLength + weightY) / 2;
+                    const magSize = 80;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(magX, magY, magSize/2, 0, Math.PI * 2);
+                    ctx.clip();
+
+                    ctx.fillStyle = '#f1f5f9';
+                    ctx.fillRect(magX - magSize/2, magY - magSize/2, magSize, magSize);
+
+                    // Draw magnified extension
+                    const magFactor = state.simulationMode === 'wire' ? 20000 : 500;
+                    const magExt = visualState.extension * magFactor;
+
+                    ctx.strokeStyle = '#10b981';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(magX, magY - magExt/2);
+                    ctx.lineTo(magX, magY + magExt/2);
+                    ctx.stroke();
+
+                    ctx.restore();
+
+                    ctx.strokeStyle = '#64748b';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(magX, magY, magSize/2, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#059669';
+                    ctx.font = 'bold 10px Arial';
+                    ctx.textAlign = 'center';
+                    const magText = state.simulationMode === 'wire' ? '20,000x' : '500x';
+                    ctx.fillText(`MAGNIFIED (${magText})`, magX, magY - magSize/2 - 5);
+                    ctx.fillText(`ΔL: ${formatScientific(state.extension, 3, false)}m`, magX, magY + magSize/2 + 15);
+                } else {
+                    ctx.fillStyle = '#059669';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`ΔL: ${state.extension.toFixed(3)}m`, indicatorX + 15, (startY + baseLength + weightY) / 2);
+                }
             }
         }
 
