@@ -624,6 +624,7 @@
         }
 
         function formatScientific(num, decimals = 2, html = true) {
+            if (!Number.isFinite(num)) return num.toString();
             if (num === 0) return "0";
             if (Math.abs(num) >= 0.01 && Math.abs(num) < 100000) {
                 return num.toFixed(decimals);
@@ -745,13 +746,13 @@
             state.extension = state.k !== 0 ? state.force / state.k : 0;
 
             // Stress: sigma = F / A
-            state.stress = state.force / state.area;
+            state.stress = state.area !== 0 ? state.force / state.area : 0;
 
             // Strain: epsilon = deltaL / L0
-            state.strain = state.extension / state.l0;
+            state.strain = state.l0 !== 0 ? state.extension / state.l0 : 0;
 
             // Young's Modulus: Y = stress / strain
-            state.youngsModulus = (state.k * state.l0) / state.area;
+            state.youngsModulus = state.area !== 0 ? (state.k * state.l0) / state.area : 0;
 
             // Elastic Potential Energy: EPE = 1/2 * F * e = 1/2 * k * e^2
             state.epe = 0.5 * state.force * state.extension;
@@ -902,7 +903,7 @@
 
             // Draw Weight
             const weightY = startY + currentLength;
-            const weightSize = 25 + Math.sqrt(visualState.mass) * 3;
+            const weightSize = 25 + Math.sqrt(Math.max(0, visualState.mass)) * 3;
 
             const weightGrad = ctx.createRadialGradient(startX, weightY + weightSize/2, 5, startX, weightY + weightSize/2, weightSize);
             weightGrad.addColorStop(0, '#475569');
