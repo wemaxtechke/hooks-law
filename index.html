@@ -237,6 +237,13 @@
             color: white;
         }
 
+        .calculated-input {
+            background-color: #f0f9ff !important;
+            border-color: #7dd3fc !important;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
         .calculation-item {
             border-left: 4px solid var(--primary-color);
             padding-left: 1rem;
@@ -244,6 +251,43 @@
             padding-top: 0.75rem;
             padding-bottom: 0.75rem;
             border-radius: 0 8px 8px 0;
+        }
+
+        /* Formula Styles */
+        .formula-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .fraction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 0.5rem;
+        }
+
+        .numerator {
+            border-bottom: 2px solid var(--text-color);
+            width: 100%;
+            padding-bottom: 2px;
+        }
+
+        .denominator {
+            padding-top: 2px;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+
+        .pulse-effect {
+            animation: pulse 1s ease-out;
         }
     </style>
 </head>
@@ -268,18 +312,6 @@
 
         <section class="controls-container">
             <div class="card">
-                <h3 style="margin-bottom: 1rem;">What is being calculated?</h3>
-                <div class="toggle-group multi-select" id="calculationToggle">
-                    <button class="toggle-btn" data-calc="force">Force (F)</button>
-                    <button class="toggle-btn" data-calc="extension">Ext. (ΔL)</button>
-                    <button class="toggle-btn" data-calc="stress">Stress (σ)</button>
-                    <button class="toggle-btn" data-calc="strain">Strain (ε)</button>
-                    <button class="toggle-btn" data-calc="young">Young's (E)</button>
-                </div>
-                <p style="font-size: 0.8rem; color: #64748b; margin-top: -0.5rem;">Select parameters to see step-by-step calculations.</p>
-            </div>
-
-            <div class="card">
                 <h3 style="margin-bottom: 1rem;">Simulation Controls</h3>
 
                 <div class="control-group">
@@ -287,6 +319,17 @@
                     <div class="toggle-group" id="modeToggle">
                         <button class="toggle-btn active" data-mode="spring">Hooke's Law</button>
                         <button class="toggle-btn" data-mode="wire">Modulus of Elasticity</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>What is being calculated?</label>
+                    <div class="toggle-group" id="calculationToggle">
+                        <button class="toggle-btn active" data-calc="force">Force (F)</button>
+                        <button class="toggle-btn" data-calc="extension">Ext. (ΔL)</button>
+                        <button class="toggle-btn mode-wire-only" data-calc="stress">Stress (σ)</button>
+                        <button class="toggle-btn mode-wire-only" data-calc="strain">Strain (ε)</button>
+                        <button class="toggle-btn mode-wire-only" data-calc="young">Young's (E)</button>
                     </div>
                 </div>
 
@@ -395,7 +438,7 @@
             strain: 0,
             youngsModulus: 0,
             epe: 0,
-            selectedCalculations: []
+            calculationTarget: 'force'
         };
 
         let visualState = {
@@ -445,7 +488,46 @@
         // Initialize
         function init() {
             setupEventListeners();
+            updateCalculatedStyles();
             update();
+        }
+
+        function updateCalculatedStyles() {
+            const allInputs = [
+                elements.massRange, elements.massNumber,
+                elements.kRange, elements.kNumber,
+                elements.extRange, elements.extNumber,
+                elements.lRange, elements.lNumber,
+                elements.aRange, elements.aNumber,
+                elements.l0Range, elements.l0Number
+            ];
+
+            allInputs.forEach(el => {
+                el.classList.remove('calculated-input');
+                el.disabled = false;
+            });
+
+            const target = state.calculationTarget;
+            if (target === 'force' || target === 'strain') {
+                elements.massRange.classList.add('calculated-input');
+                elements.massNumber.classList.add('calculated-input');
+                elements.massRange.disabled = true;
+                elements.massNumber.disabled = true;
+            } else if (target === 'extension' || target === 'stress') {
+                elements.extRange.classList.add('calculated-input');
+                elements.extNumber.classList.add('calculated-input');
+                elements.extRange.disabled = true;
+                elements.extNumber.disabled = true;
+                elements.lRange.classList.add('calculated-input');
+                elements.lNumber.classList.add('calculated-input');
+                elements.lRange.disabled = true;
+                elements.lNumber.disabled = true;
+            } else if (target === 'young') {
+                elements.kRange.classList.add('calculated-input');
+                elements.kNumber.classList.add('calculated-input');
+                elements.kRange.disabled = true;
+                elements.kNumber.disabled = true;
+            }
         }
 
         function setupEventListeners() {
@@ -489,10 +571,18 @@
                     if (state.simulationMode === 'spring') {
                         document.body.classList.add('mode-hooke');
                         document.getElementById('graphTitle').textContent = "Force vs. Extension";
+                        // Reset target if it was a wire-only one
+                        if (['stress', 'strain', 'young'].includes(state.calculationTarget)) {
+                            state.calculationTarget = 'force';
+                            Array.from(elements.calculationToggle.children).forEach(btn => {
+                                btn.classList.toggle('active', btn.dataset.calc === 'force');
+                            });
+                        }
                     } else {
                         document.body.classList.remove('mode-hooke');
                         document.getElementById('graphTitle').textContent = "Stress-Strain Curve";
                     }
+                    updateCalculatedStyles();
                     update();
                 }
             });
@@ -520,13 +610,13 @@
             elements.calculationToggle.addEventListener('click', (e) => {
                 if (e.target.dataset.calc) {
                     const calc = e.target.dataset.calc;
-                    if (state.selectedCalculations.includes(calc)) {
-                        state.selectedCalculations = state.selectedCalculations.filter(c => c !== calc);
-                        e.target.classList.remove('active');
-                    } else {
-                        state.selectedCalculations.push(calc);
-                        e.target.classList.add('active');
-                    }
+                    state.calculationTarget = calc;
+
+                    // Single select logic
+                    Array.from(elements.calculationToggle.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    updateCalculatedStyles();
                     update();
                 }
             });
@@ -553,33 +643,66 @@
                 if (el && el !== source && document.activeElement !== el) el.value = v;
             };
 
-            // Calculate Force
-            if (state.inputMode === 'mass') {
-                state.force = state.mass * G;
-            } else {
-                state.force = state.forceInput;
-            }
+            // Recalculate based on target
+            const target = state.calculationTarget;
 
-            // Bidirectional Logic
-            if (key === 'mass' || key === 'forceInput') {
-                // F changed -> update extension and total length
-                state.extensionInput = state.force / state.k;
-                state.totalLength = state.l0 + state.extensionInput;
-            } else if (key === 'k') {
-                // k changed -> update extension and total length
+            if (target === 'force') {
+                // Force is calculated: F = k * ΔL
+                if (key === 'totalLength') {
+                    state.extensionInput = state.totalLength - state.l0;
+                } else if (key === 'l0') {
+                    state.totalLength = state.l0 + state.extensionInput;
+                }
+                state.force = state.k * state.extensionInput;
+                state.mass = state.force / G;
+                state.forceInput = state.force;
+            } else if (target === 'extension') {
+                // Extension is calculated: ΔL = F / k
+                if (state.inputMode === 'mass') {
+                    state.force = state.mass * G;
+                    state.forceInput = state.force;
+                } else {
+                    state.force = state.forceInput;
+                    state.mass = state.force / G;
+                }
                 state.extensionInput = state.k !== 0 ? state.force / state.k : 0;
                 state.totalLength = state.l0 + state.extensionInput;
-            } else if (key === 'extensionInput') {
-                // ΔL changed -> update k and total length
-                state.k = state.extensionInput !== 0 ? state.force / state.extensionInput : 0;
+            } else if (target === 'stress') {
+                // Stress target often implies Force/Extension logic plus area
+                if (state.inputMode === 'mass') {
+                    state.force = state.mass * G;
+                    state.forceInput = state.force;
+                } else {
+                    state.force = state.forceInput;
+                    state.mass = state.force / G;
+                }
+                state.extensionInput = state.k !== 0 ? state.force / state.k : 0;
                 state.totalLength = state.l0 + state.extensionInput;
-            } else if (key === 'totalLength') {
-                // L changed -> update ΔL and k
-                state.extensionInput = state.totalLength - state.l0;
+            } else if (target === 'strain') {
+                // Strain target
+                if (key === 'totalLength') {
+                    state.extensionInput = state.totalLength - state.l0;
+                } else if (key === 'l0') {
+                    state.totalLength = state.l0 + state.extensionInput;
+                }
+                state.force = state.k * state.extensionInput;
+                state.mass = state.force / G;
+                state.forceInput = state.force;
+            } else if (target === 'young') {
+                // Young's Modulus target: we calculate k first, then Y = (k * L0) / A
+                if (state.inputMode === 'mass') {
+                    state.force = state.mass * G;
+                    state.forceInput = state.force;
+                } else {
+                    state.force = state.forceInput;
+                    state.mass = state.force / G;
+                }
+                if (key === 'totalLength') {
+                    state.extensionInput = state.totalLength - state.l0;
+                } else if (key === 'l0') {
+                    state.totalLength = state.l0 + state.extensionInput;
+                }
                 state.k = state.extensionInput !== 0 ? state.force / state.extensionInput : 0;
-            } else if (key === 'l0') {
-                // L0 changed -> update L
-                state.totalLength = state.l0 + state.extensionInput;
             }
 
             // Update all related UI elements
@@ -634,12 +757,28 @@
         }
 
         function updateDashboard() {
+            const results = [
+                elements.forceRes, elements.extRes, elements.stressRes,
+                elements.strainRes, elements.youngRes, elements.epeRes
+            ];
+
+            const oldValues = results.map(el => el?.innerHTML);
+
             elements.forceRes.innerHTML = formatScientific(state.force, 2);
             elements.extRes.innerHTML = formatScientific(state.extension, 4);
             elements.stressRes.innerHTML = formatScientific(state.stress, 2);
             elements.strainRes.innerHTML = formatScientific(state.strain, 4);
             elements.youngRes.innerHTML = formatScientific(state.youngsModulus, 2);
             if (elements.epeRes) elements.epeRes.innerHTML = formatScientific(state.epe, 4);
+
+            // Add pulse effect to changed values
+            results.forEach((el, i) => {
+                if (el && el.innerHTML !== oldValues[i]) {
+                    el.parentElement.classList.remove('pulse-effect');
+                    void el.parentElement.offsetWidth; // trigger reflow
+                    el.parentElement.classList.add('pulse-effect');
+                }
+            });
 
             const totalLength = state.l0 + state.extension;
             if (totalLength > MAX_VISUAL_LENGTH || state.strain > 1.0) {
@@ -942,71 +1081,74 @@
         }
 
         function updateStepByStepCalculations() {
-            const logicalOrder = ['force', 'extension', 'stress', 'strain', 'young'];
-            const activeCalcs = logicalOrder.filter(c => state.selectedCalculations.includes(c));
-
-            if (activeCalcs.length === 0) {
-                elements.calculationSteps.style.display = 'none';
-                lastSelectionJson = "";
-                return;
-            }
+            const calc = state.calculationTarget;
             elements.calculationSteps.style.display = 'block';
 
-            const currentSelectionJson = JSON.stringify(activeCalcs);
-            if (currentSelectionJson !== lastSelectionJson) {
-                // Rebuild structure only when selection changes
-                let html = '';
-                activeCalcs.forEach((calc, index) => {
-                    html += `<div class="calculation-item" id="calc-item-${calc}" style="animation: fadeInUp 0.5s ease forwards; animation-delay: ${index * 0.1}s; opacity: 0; margin-bottom: 1.5rem;"></div>`;
-                });
-                elements.stepsContainer.innerHTML = html;
-                lastSelectionJson = currentSelectionJson;
+            if (calc !== lastSelectionJson) {
+                elements.stepsContainer.innerHTML = `<div class="calculation-item" id="calc-item-${calc}" style="animation: fadeInUp 0.5s ease forwards; opacity: 0; margin-bottom: 1.5rem;"></div>`;
+                lastSelectionJson = calc;
             }
 
-            // Update content of existing items to prevent animation reset
-            activeCalcs.forEach(calc => {
-                const item = document.getElementById(`calc-item-${calc}`);
-                if (!item) return;
+            const item = document.getElementById(`calc-item-${calc}`);
+            if (!item) return;
 
-                let content = '';
-                if (calc === 'force') {
-                    if (state.inputMode === 'mass') {
-                        content = `
-                            <strong>Calculate Force (F):</strong><br>
-                            F = m &times; g = ${state.mass.toFixed(1)} kg &times; ${G} m/s&sup2; = <strong>${formatScientific(state.force, 2)} N</strong>
-                        `;
-                    } else {
-                        content = `
-                            <strong>Input Force (F):</strong><br>
-                            F = <strong>${formatScientific(state.force, 2)} N</strong>
-                        `;
-                    }
-                } else if (calc === 'extension') {
-                    content = `
-                        <strong>Calculate Extension (&Delta;L):</strong><br>
-                        &Delta;L = F / k = ${formatScientific(state.force, 2)} N / ${formatScientific(state.k, 2)} N/m = <strong>${formatScientific(state.extension, 4)} m</strong>
-                    `;
-                } else if (calc === 'stress') {
-                    content = `
-                        <strong>Calculate Stress (&sigma;):</strong><br>
-                        &sigma; = F / A = ${formatScientific(state.force, 2)} N / ${formatScientific(state.area, 2)} m&sup2; = <strong>${formatScientific(state.stress, 2)} N/m&sup2;</strong>
-                    `;
-                } else if (calc === 'strain') {
-                    content = `
-                        <strong>Calculate Strain (&epsilon;):</strong><br>
-                        &epsilon; = &Delta;L / L₀ = ${formatScientific(state.extension, 4)} m / ${state.l0.toFixed(2)} m = <strong>${formatScientific(state.strain, 4)}</strong>
-                    `;
-                } else if (calc === 'young') {
-                    content = `
-                        <strong>Calculate Young's Modulus (E):</strong><br>
-                        E = &sigma; / &epsilon; = ${formatScientific(state.stress, 2)} N/m&sup2; / ${formatScientific(state.strain, 4)} = <strong>${formatScientific(state.youngsModulus, 2)} N/m&sup2;</strong>
-                    `;
-                }
+            let content = '';
+            if (calc === 'force') {
+                content = `
+                    <strong>Derivation for Force (F):</strong>
+                    <div class="formula-row">F = k &times; &Delta;L</div>
+                    <div class="formula-row">F = ${formatScientific(state.k, 2)} N/m &times; ${formatScientific(state.extensionInput, 4)} m</div>
+                    <div class="formula-row">F = <strong>${formatScientific(state.force, 2)} N</strong></div>
+                `;
+            } else if (calc === 'extension') {
+                content = `
+                    <strong>Derivation for Extension (&Delta;L):</strong>
+                    <div class="formula-row">
+                        &Delta;L = <div class="fraction"><div class="numerator">F</div><div class="denominator">k</div></div>
+                    </div>
+                    <div class="formula-row">
+                        &Delta;L = <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(state.k, 2)} N/m</div></div>
+                    </div>
+                    <div class="formula-row">&Delta;L = <strong>${formatScientific(state.extension, 4)} m</strong></div>
+                `;
+            } else if (calc === 'stress') {
+                content = `
+                    <strong>Derivation for Stress (&sigma;):</strong>
+                    <div class="formula-row">
+                        &sigma; = <div class="fraction"><div class="numerator">F</div><div class="denominator">A</div></div>
+                    </div>
+                    <div class="formula-row">
+                        &sigma; = <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(state.area, 2)} m&sup2;</div></div>
+                    </div>
+                    <div class="formula-row">&sigma; = <strong>${formatScientific(state.stress, 2)} N/m&sup2;</strong></div>
+                `;
+            } else if (calc === 'strain') {
+                content = `
+                    <strong>Derivation for Strain (&epsilon;):</strong>
+                    <div class="formula-row">
+                        &epsilon; = <div class="fraction"><div class="numerator">&Delta;L</div><div class="denominator">L₀</div></div>
+                    </div>
+                    <div class="formula-row">
+                        &epsilon; = <div class="fraction"><div class="numerator">${formatScientific(state.extension, 4)} m</div><div class="denominator">${state.l0.toFixed(2)} m</div></div>
+                    </div>
+                    <div class="formula-row">&epsilon; = <strong>${formatScientific(state.strain, 4)}</strong></div>
+                `;
+            } else if (calc === 'young') {
+                content = `
+                    <strong>Derivation for Young's Modulus (E):</strong>
+                    <div class="formula-row">
+                        E = <div class="fraction"><div class="numerator">&sigma;</div><div class="denominator">&epsilon;</div></div>
+                    </div>
+                    <div class="formula-row">
+                        E = <div class="fraction"><div class="numerator">${formatScientific(state.stress, 2)} N/m&sup2;</div><div class="denominator">${formatScientific(state.strain, 4)}</div></div>
+                    </div>
+                    <div class="formula-row">E = <strong>${formatScientific(state.youngsModulus, 2)} N/m&sup2;</strong></div>
+                `;
+            }
 
-                if (item.innerHTML !== content) {
-                    item.innerHTML = content;
-                }
-            });
+            if (item.innerHTML !== content) {
+                item.innerHTML = content;
+            }
         }
 
         function update() {
