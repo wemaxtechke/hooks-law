@@ -486,12 +486,6 @@
             stepsContainer: document.getElementById('stepsContainer')
         };
 
-        // Initialize
-        function init() {
-            setupEventListeners();
-            updateCalculatedStyles();
-            update();
-        }
 
         function updateCalculatedStyles() {
             const allInputs = [
@@ -652,7 +646,7 @@
                 // Force is calculated: F = k * ΔL
                 if (key === 'totalLength') {
                     state.extensionInput = state.totalLength - state.l0;
-                } else if (key === 'l0') {
+                } else if (key === 'l0' || key === 'extensionInput') {
                     state.totalLength = state.l0 + state.extensionInput;
                 }
                 state.force = state.k * state.extensionInput;
@@ -684,7 +678,7 @@
                 // Strain target
                 if (key === 'totalLength') {
                     state.extensionInput = state.totalLength - state.l0;
-                } else if (key === 'l0') {
+                } else if (key === 'l0' || key === 'extensionInput') {
                     state.totalLength = state.l0 + state.extensionInput;
                 }
                 state.force = state.k * state.extensionInput;
@@ -701,7 +695,7 @@
                 }
                 if (key === 'totalLength') {
                     state.extensionInput = state.totalLength - state.l0;
-                } else if (key === 'l0') {
+                } else if (key === 'l0' || key === 'extensionInput') {
                     state.totalLength = state.l0 + state.extensionInput;
                 }
                 state.k = state.extensionInput !== 0 ? state.force / state.extensionInput : 0;
@@ -1172,6 +1166,7 @@
 
         function init() {
             setupEventListeners();
+            updateCalculatedStyles();
 
             // Set initial mode class
             if (state.simulationMode === 'spring') {
