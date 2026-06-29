@@ -327,6 +327,7 @@
                     <div class="toggle-group" id="calculationToggle">
                         <button class="toggle-btn active" data-calc="force">Force (F)</button>
                         <button class="toggle-btn" data-calc="extension">Ext. (ΔL)</button>
+                        <button class="toggle-btn" data-calc="k">Spring Const. (k)</button>
                         <button class="toggle-btn mode-wire-only" data-calc="stress">Stress (σ)</button>
                         <button class="toggle-btn mode-wire-only" data-calc="strain">Strain (ε)</button>
                         <button class="toggle-btn mode-wire-only" data-calc="young">Young's (E)</button>
@@ -522,7 +523,7 @@
                 elements.lNumber.classList.add('calculated-input');
                 elements.lRange.disabled = true;
                 elements.lNumber.disabled = true;
-            } else if (target === 'young') {
+            } else if (target === 'young' || target === 'k') {
                 elements.kRange.classList.add('calculated-input');
                 elements.kNumber.classList.add('calculated-input');
                 elements.kRange.disabled = true;
@@ -688,8 +689,8 @@
                 state.force = state.k * state.extensionInput;
                 state.mass = state.force / G;
                 state.forceInput = state.force;
-            } else if (target === 'young') {
-                // Young's Modulus target: we calculate k first, then Y = (k * L0) / A
+            } else if (target === 'young' || target === 'k') {
+                // For k or Young's target, we calculate k from F and ΔL
                 if (state.inputMode === 'mass') {
                     state.force = state.mass * G;
                     state.forceInput = state.force;
@@ -1099,6 +1100,17 @@
                     <div class="formula-row">F = k &times; &Delta;L</div>
                     <div class="formula-row">F = ${formatScientific(state.k, 2)} N/m &times; ${formatScientific(state.extensionInput, 4)} m</div>
                     <div class="formula-row">F = <strong>${formatScientific(state.force, 2)} N</strong></div>
+                `;
+            } else if (calc === 'k') {
+                content = `
+                    <strong>Derivation for Spring Constant (k):</strong>
+                    <div class="formula-row">
+                        k = <div class="fraction"><div class="numerator">F</div><div class="denominator">&Delta;L</div></div>
+                    </div>
+                    <div class="formula-row">
+                        k = <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(state.extensionInput, 4)} m</div></div>
+                    </div>
+                    <div class="formula-row">k = <strong>${formatScientific(state.k, 2)} N/m</strong></div>
                 `;
             } else if (calc === 'extension') {
                 content = `
