@@ -31,6 +31,31 @@
             padding: 1.5rem 2rem;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .nav-links {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .nav-links a.active {
+            opacity: 1;
+            border-bottom: 2px solid white;
         }
 
         h1, h3 {
@@ -294,6 +319,10 @@
 <body>
     <header>
         <h1>Hooke's Law & Elasticity</h1>
+        <nav class="nav-links">
+            <a href="index.html" class="active">Simulation</a>
+            <a href="tutor-camera.html">Tutor Camera</a>
+        </nav>
     </header>
 
     <main>
