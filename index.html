@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hooke's Law & Elasticity Simulation</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --accent-color: #3b82f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1, h3 {
+            margin: 0;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            padding: 2rem;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .simulation-container {
+            flex: 1.5;
+            min-width: 400px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        #simulationCanvas {
+            border: 1px solid var(--border-color);
+            background-color: #ffffff;
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .controls-container {
+            flex: 1;
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        input[type="number"] {
+            width: 90px;
+            padding: 0.4rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .result-item {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-item.full-width {
+            grid-column: span 2;
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+            font-weight: 700;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            word-break: break-all;
+        }
+
+        .warning {
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+            font-weight: 600;
+            text-align: center;
+            border: 1px solid #fecaca;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #graphCanvas {
+            margin-top: 1rem;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            border-radius: 6px;
+            width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .simulation-container, .controls-container {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hooke's Law & Young's Modulus</h1>
+    </header>
+
+    <main>
+        <section class="simulation-container">
+            <canvas id="simulationCanvas" width="400" height="550"></canvas>
+            <div id="elasticLimitWarning" class="warning">
+                ⚠️ ELASTIC LIMIT EXCEEDED! <br>
+                The material has reached its yield point. Hooke's Law is no longer proportional.
+            </div>
+        </section>
+
+        <section class="controls-container">
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Simulation Controls</h3>
+                <div class="control-group">
+                    <label for="massRange">Mass (m): <span id="massVal">5.0</span> kg</label>
+                    <div class="input-row">
+                        <input type="range" id="massRange" min="0" max="50" step="0.1" value="5.0">
+                        <input type="number" id="massNumber" min="0" max="50" step="0.1" value="5.0">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="kRange">Spring Constant (k): <span id="kVal">100</span> N/m</label>
+                    <div class="input-row">
+                        <input type="range" id="kRange" min="10" max="500" step="1" value="100">
+                        <input type="number" id="kNumber" min="10" max="500" step="1" value="100">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="aRange">Cross-sectional Area (A): <span id="aVal">0.0010</span> m²</label>
+                    <div class="input-row">
+                        <input type="range" id="aRange" min="0.0001" max="0.01" step="0.0001" value="0.0010">
+                        <input type="number" id="aNumber" min="0.0001" max="0.01" step="0.0001" value="0.0010">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="l0Range">Original Length (L₀): <span id="l0Val">2.0</span> m</label>
+                    <div class="input-row">
+                        <input type="range" id="l0Range" min="0.5" max="5" step="0.1" value="2.0">
+                        <input type="number" id="l0Number" min="0.5" max="5" step="0.1" value="2.0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card dashboard">
+                <div class="result-item">
+                    <div class="result-label">Force (F)</div>
+                    <div class="result-value"><span id="forceRes">0.00</span> N</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Extension (ΔL)</div>
+                    <div class="result-value"><span id="extRes">0.00</span> m</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Stress (σ)</div>
+                    <div class="result-value"><span id="stressRes">0.00</span> Pa</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Strain (ε)</div>
+                    <div class="result-value"><span id="strainRes">0.0000</span></div>
+                </div>
+                <div class="result-item full-width">
+                    <div class="result-label">Young's Modulus (Y)</div>
+                    <div class="result-value"><span id="youngRes">0.00</span> Pa</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 0.5rem;">Stress-Strain Curve</h3>
+                <canvas id="graphCanvas" width="300" height="180"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Constants
+        const G = 9.8; // Gravity (m/s²)
+        const MAX_VISUAL_LENGTH = 12; // meters
+
+        // State
+        let state = {
+            mass: 5.0,
+            k: 100,
+            area: 0.0010,
+            l0: 2.0,
+            force: 0,
+            extension: 0,
+            stress: 0,
+            strain: 0,
+            youngsModulus: 0
+        };
+
+        let visualState = {
+            extension: 0,
+            mass: 5.0
+        };
+
+        // DOM Elements
+        const elements = {
+            massRange: document.getElementById('massRange'),
+            massNumber: document.getElementById('massNumber'),
+            massVal: document.getElementById('massVal'),
+            kRange: document.getElementById('kRange'),
+            kNumber: document.getElementById('kNumber'),
+            kVal: document.getElementById('kVal'),
+            aRange: document.getElementById('aRange'),
+            aNumber: document.getElementById('aNumber'),
+            aVal: document.getElementById('aVal'),
+            l0Range: document.getElementById('l0Range'),
+            l0Number: document.getElementById('l0Number'),
+            l0Val: document.getElementById('l0Val'),
+            forceRes: document.getElementById('forceRes'),
+            extRes: document.getElementById('extRes'),
+            stressRes: document.getElementById('stressRes'),
+            strainRes: document.getElementById('strainRes'),
+            youngRes: document.getElementById('youngRes'),
+            warning: document.getElementById('elasticLimitWarning')
+        };
+
+        // Initialize
+        function init() {
+            setupEventListeners();
+            update();
+        }
+
+        function setupEventListeners() {
+            // Mass
+            elements.massRange.addEventListener('input', (e) => syncInputs('mass', e.target.value));
+            elements.massNumber.addEventListener('input', (e) => syncInputs('mass', e.target.value));
+
+            // k
+            elements.kRange.addEventListener('input', (e) => syncInputs('k', e.target.value));
+            elements.kNumber.addEventListener('input', (e) => syncInputs('k', e.target.value));
+
+            // Area
+            elements.aRange.addEventListener('input', (e) => syncInputs('area', e.target.value));
+            elements.aNumber.addEventListener('input', (e) => syncInputs('area', e.target.value));
+
+            // Original Length
+            elements.l0Range.addEventListener('input', (e) => syncInputs('l0', e.target.value));
+            elements.l0Number.addEventListener('input', (e) => syncInputs('l0', e.target.value));
+        }
+
+        function syncInputs(key, value) {
+            const val = parseFloat(value) || 0;
+            state[key] = val;
+
+            if (key === 'mass') {
+                elements.massRange.value = val;
+                elements.massNumber.value = val;
+                elements.massVal.textContent = val.toFixed(1);
+            } else if (key === 'k') {
+                elements.kRange.value = val;
+                elements.kNumber.value = val;
+                elements.kVal.textContent = val;
+            } else if (key === 'area') {
+                elements.aRange.value = val;
+                elements.aNumber.value = val;
+                elements.aVal.textContent = val.toFixed(4);
+            } else if (key === 'l0') {
+                elements.l0Range.value = val;
+                elements.l0Number.value = val;
+                elements.l0Val.textContent = val.toFixed(1);
+            }
+
+            update();
+        }
+
+        function calculatePhysics() {
+            // F = m * g
+            state.force = state.mass * G;
+
+            // Hooke's Law: F = k * e => e = F / k
+            state.extension = state.force / state.k;
+
+            // Stress: sigma = F / A
+            state.stress = state.force / state.area;
+
+            // Strain: epsilon = deltaL / L0
+            state.strain = state.extension / state.l0;
+
+            // Young's Modulus: Y = stress / strain
+            // Y = (F/A) / (deltaL / L0) = (k * L0) / A
+            // We calculate it this way to avoid division by zero when strain is 0
+            state.youngsModulus = (state.k * state.l0) / state.area;
+        }
+
+        function updateDashboard() {
+            elements.forceRes.textContent = state.force.toFixed(2);
+            elements.extRes.textContent = state.extension.toFixed(2);
+            elements.stressRes.textContent = state.stress.toExponential(2);
+            elements.strainRes.textContent = state.strain.toFixed(4);
+            elements.youngRes.textContent = state.youngsModulus.toExponential(2);
+
+            const totalLength = state.l0 + state.extension;
+            if (totalLength > MAX_VISUAL_LENGTH || state.strain > 1.0) {
+                elements.warning.style.display = 'block';
+            } else {
+                elements.warning.style.display = 'none';
+            }
+        }
+
+        function drawSimulation() {
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const startX = width / 2;
+            const startY = 50;
+
+            // Draw Ruler
+            const rulerX = width - 60;
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(rulerX, 20);
+            ctx.lineTo(rulerX, height - 20);
+            ctx.stroke();
+
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px Arial';
+            for (let i = 0; i <= 10; i++) {
+                const y = 50 + i * 40;
+                ctx.beginPath();
+                ctx.moveTo(rulerX, y);
+                ctx.lineTo(rulerX + 10, y);
+                ctx.stroke();
+                ctx.fillText(`${i}m`, rulerX + 15, y);
+            }
+
+            // Draw Top Support
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(startX - 60, startY - 10, 120, 10);
+
+            // Draw Spring
+            const baseLength = state.l0 * 40; // Scale 1m = 40px
+            const totalVisualLength = state.l0 + visualState.extension;
+            const currentLength = totalVisualLength * 40;
+            const coils = 15;
+            const springWidth = 30;
+
+            const isBeyondLimit = totalVisualLength > MAX_VISUAL_LENGTH || (visualState.extension / state.l0) > 1.0;
+            ctx.strokeStyle = isBeyondLimit ? '#ef4444' : '#334155';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+
+            for (let i = 0; i < coils; i++) {
+                const y = startY + (i + 0.5) * (currentLength / coils);
+                const x = startX + (i % 2 === 0 ? springWidth : -springWidth);
+                ctx.lineTo(x, y);
+            }
+            ctx.lineTo(startX, startY + currentLength);
+            ctx.stroke();
+
+            // Draw Weight
+            const weightY = startY + currentLength;
+            const weightSize = 20 + Math.sqrt(visualState.mass) * 5;
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(startX - weightSize / 2, weightY, weightSize, weightSize);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${visualState.mass.toFixed(1)}kg`, startX, weightY + weightSize / 2 + 5);
+
+            // Draw Extension Indicator
+            if (visualState.extension > 0.01) {
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = '#10b981';
+                ctx.beginPath();
+                ctx.moveTo(startX + 40, startY + baseLength);
+                ctx.lineTo(startX + 80, startY + baseLength);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(startX + 40, weightY);
+                ctx.lineTo(startX + 80, weightY);
+                ctx.stroke();
+
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(startX + 70, startY + baseLength);
+                ctx.lineTo(startX + 70, weightY);
+                ctx.stroke();
+
+                ctx.fillStyle = '#059669';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`ΔL: ${visualState.extension.toFixed(2)}m`, startX + 75, startY + baseLength + (weightY - (startY + baseLength)) / 2);
+            }
+        }
+
+        function drawGraph() {
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const margin = 30;
+            const plotW = width - margin * 2;
+            const plotH = height - margin * 2;
+
+            // Draw Axes
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, height - margin);
+            ctx.lineTo(width - margin, height - margin);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Strain (ε)', width / 2, height - 5);
+
+            ctx.save();
+            ctx.translate(10, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Stress (σ)', 0, 0);
+            ctx.restore();
+
+            // Plot Curve (Straight line for Hooke's Law)
+            const maxStrain = 2.0;
+            const maxStress = 5e7; // Scale for Pa
+
+            // Draw full elastic region line (dashed)
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(margin, height - margin);
+            const limitX = margin + (1.0 / maxStrain) * plotW;
+            const limitY = (height - margin) - ((state.youngsModulus * 1.0) / maxStress) * plotH;
+            ctx.lineTo(limitX, limitY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const currentX = margin + (state.strain / maxStrain) * plotW;
+            const currentY = (height - margin) - (state.stress / maxStress) * plotH;
+
+            // Constrain plot
+            const targetX = Math.min(width - margin, currentX);
+            const targetY = Math.max(margin, currentY);
+
+            const isBeyondLimit = (state.l0 + state.extension) > MAX_VISUAL_LENGTH || state.strain > 1.0;
+            ctx.strokeStyle = isBeyondLimit ? '#ef4444' : '#2563eb';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, height - margin);
+            ctx.lineTo(targetX, targetY);
+            ctx.stroke();
+
+            // Point
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function animate() {
+            // Smoothly interpolate visual state
+            const ease = 0.15;
+            visualState.extension += (state.extension - visualState.extension) * ease;
+            visualState.mass += (state.mass - visualState.mass) * ease;
+
+            drawSimulation();
+            drawGraph();
+            requestAnimationFrame(animate);
+        }
+
+        function update() {
+            calculatePhysics();
+            updateDashboard();
+        }
+
+        function init() {
+            setupEventListeners();
+            update();
+            animate();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
