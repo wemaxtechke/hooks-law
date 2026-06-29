@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Notes - Hooke's Law & Elasticity</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --accent-color: #3b82f6;
+            --formula-bg: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-links {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .nav-links a.active {
+            opacity: 1;
+            border-bottom: 2px solid white;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        h1 { color: var(--primary-color); margin-top: 0; }
+        h2 { color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 2rem; }
+        h3 { color: var(--text-color); margin-top: 1.5rem; }
+
+        .formula-box {
+            background: var(--formula-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            margin: 1.5rem 0;
+            font-family: 'Cambria', 'Georgia', serif;
+            font-size: 1.25rem;
+            text-align: center;
+        }
+
+        .example-box {
+            background: #fffbeb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #fef3c7;
+            margin: 1.5rem 0;
+        }
+
+        .example-title {
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .note-tag {
+            display: inline-block;
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        ul, ol {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+        }
+
+        .practice-section {
+            margin-top: 3rem;
+        }
+
+        .question {
+            background: #fdfdfd;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .solution-btn {
+            background: none;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .solution-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .solution-content {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--border-color);
+            color: #475569;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.9em;
+            margin: 0 0.2em;
+        }
+        .numerator { border-bottom: 1px solid var(--text-color); padding: 0 0.2em; }
+        .denominator { padding: 0 0.2em; }
+
+        @media (max-width: 600px) {
+            .card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hooke's Law & Elasticity</h1>
+        <nav class="nav-links">
+            <a href="index.html">Simulation</a>
+            <a href="tutor-camera.html">Tutor Camera</a>
+            <a href="notes.html" class="active">Study Notes</a>
+        </nav>
+    </header>
+
+    <main>
+        <article class="card">
+            <h1>Elasticity, Hooke's Law & Modulus Guide</h1>
+            <p>Welcome to the comprehensive guide on elasticity. These notes cover everything from simple spring behavior to the structural properties of materials.</p>
+
+            <h2>1. Hooke's Law</h2>
+            <p>Hooke's law states that the <strong>extension</strong> of a spring is directly proportional to the <strong>applied force</strong>, provided that the elastic limit is not exceeded.</p>
+            <div class="formula-box">
+                F = k &times; e
+            </div>
+            <p>Where:</p>
+            <ul>
+                <li><strong>F</strong> = Force applied (Newtons, N)</li>
+                <li><strong>k</strong> = Spring Constant (Stiffness) (N/m)</li>
+                <li><strong>e</strong> = Extension (meters, m)</li>
+            </ul>
+
+            <div class="example-box">
+                <span class="note-tag">Critical Student Note</span>
+                <p>In Physics, <strong>mass</strong> (kg) is not the same as <strong>Force</strong>. To convert mass to Force (Weight), multiply by gravity (approx. 9.8 N/kg or 10 N/kg depending on the syllabus).</p>
+                <p><em>F = m &times; g</em></p>
+            </div>
+
+            <h2>2. Spring Constant (k)</h2>
+            <p>The spring constant measures how stiff an individual spring is. A higher <em>k</em> means a stiffer spring.</p>
+            <div class="formula-box">
+                k = <div class="fraction"><div class="numerator">F</div><div class="denominator">e</div></div>
+            </div>
+
+            <div class="example-box">
+                <span class="example-title">Example: Finding k</span>
+                <p>A mass of 200g is hung from a spring, causing it to extend by 100mm. Find its spring constant (g = 10 N/kg).</p>
+                <ol>
+                    <li>Convert Mass to Force: 200g = 0.2kg. F = 0.2 &times; 10 = 2N.</li>
+                    <li>Convert Extension to meters: 100mm = 0.1m.</li>
+                    <li>Calculate: k = 2N / 0.1m = <strong>20 N/m</strong>.</li>
+                </ol>
+            </div>
+
+            <h2>3. Springs in Parallel</h2>
+            <p>When two identical springs are placed side-by-side (parallel) to support a load, they share the weight. This makes the system twice as stiff.</p>
+            <div class="formula-box">
+                k<sub>total</sub> = k<sub>1</sub> + k<sub>2</sub>
+            </div>
+
+            <h2>4. Stress, Strain, and Young's Modulus</h2>
+            <p>When dealing with solid materials (wires, beams), we use properties independent of the object's size.</p>
+
+            <h3>Tensile Stress (&sigma;)</h3>
+            <p>Stress measures the concentration of force per unit area.</p>
+            <div class="formula-box">
+                &sigma; = <div class="fraction"><div class="numerator">F</div><div class="denominator">A</div></div>
+            </div>
+            <p>Unit: N/m&sup2; (or Pascals, Pa). <em>A</em> is the cross-sectional area.</p>
+
+            <h3>Tensile Strain (&epsilon;)</h3>
+            <p>Strain describes the fractional deformation.</p>
+            <div class="formula-box">
+                &epsilon; = <div class="fraction"><div class="numerator">&Delta;L</div><div class="denominator">L<sub>0</sub></div></div>
+            </div>
+            <p>Strain has <strong>no units</strong> as it is a ratio of lengths.</p>
+
+            <h3>Young's Modulus (E or Y)</h3>
+            <p>Measures the fundamental stiffness of a <em>material type</em> itself.</p>
+            <div class="formula-box">
+                Y = <div class="fraction"><div class="numerator">&sigma;</div><div class="denominator">&epsilon;</div></div> = <div class="fraction"><div class="numerator">F &times; L<sub>0</sub></div><div class="denominator">A &times; &Delta;L</div></div>
+            </div>
+
+            <h2>5. The Stress-Strain Curve</h2>
+            <p>A graph of Stress vs. Strain reveals material limits:</p>
+            <ul>
+                <li><strong>Proportional Limit:</strong> Linear region where Hooke's Law is obeyed.</li>
+                <li><strong>Elastic Limit / Yield Point:</strong> Point where permanent deformation begins.</li>
+                <li><strong>Ultimate Tensile Stress:</strong> Maximum stress the material can withstand.</li>
+                <li><strong>Fracture Point:</strong> Where the material physically snaps.</li>
+            </ul>
+
+            <div class="practice-section">
+                <h2>Practice Questions</h2>
+
+                <div class="question">
+                    <p><strong>Q1:</strong> A spring extends by 10cm when a mass of 100g is attached. What is its spring constant? (g = 10 N/kg)</p>
+                    <button class="solution-btn" onclick="toggleSolution(1)">Show Solution</button>
+                    <div id="sol1" class="solution-content">
+                        F = 0.1kg &times; 10 = 1N. e = 0.1m.<br>
+                        k = 1N / 0.1m = <strong>10 N/m</strong>.
+                    </div>
+                </div>
+
+                <div class="question">
+                    <p><strong>Q2:</strong> A wire of length 2.0m and area 5.0 &times; 10<sup>-7</sup> m&sup2; experiences a stress of 4.0 &times; 10<sup>7</sup> Pa. Calculate the applied force.</p>
+                    <button class="solution-btn" onclick="toggleSolution(2)">Show Solution</button>
+                    <div id="sol2" class="solution-content">
+                        F = &sigma; &times; A = (4.0 &times; 10<sup>7</sup>) &times; (5.0 &times; 10<sup>-7</sup>) = <strong>20 N</strong>.
+                    </div>
+                </div>
+
+                <div class="question">
+                    <p><strong>Q3:</strong> Calculate the strain if a 25cm wire stretches to 25.7cm.</p>
+                    <button class="solution-btn" onclick="toggleSolution(3)">Show Solution</button>
+                    <div id="sol3" class="solution-content">
+                        &Delta;L = 0.7cm. L<sub>0</sub> = 25cm.<br>
+                        Strain = 0.7 / 25 = <strong>0.028</strong>.
+                    </div>
+                </div>
+            </div>
+        </article>
+    </main>
+
+    <script>
+        function toggleSolution(id) {
+            const sol = document.getElementById('sol' + id);
+            const btn = sol.previousElementSibling;
+            if (sol.style.display === 'block') {
+                sol.style.display = 'none';
+                btn.textContent = 'Show Solution';
+            } else {
+                sol.style.display = 'block';
+                btn.textContent = 'Hide Solution';
+            }
+        }
+    </script>
+</body>
+</html>
