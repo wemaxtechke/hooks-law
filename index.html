@@ -180,6 +180,14 @@
             word-break: break-all;
         }
 
+        /* Mode-based visibility */
+        .mode-wire-only {
+            display: block;
+        }
+        body.mode-hooke .mode-wire-only {
+            display: none;
+        }
+
         .warning {
             color: #b91c1c;
             background: #fee2e2;
@@ -216,7 +224,7 @@
 </head>
 <body>
     <header>
-        <h1>Hooke's Law & Young's Modulus</h1>
+        <h1>Hooke's Law & Elasticity</h1>
     </header>
 
     <main>
@@ -235,8 +243,8 @@
                 <div class="control-group">
                     <label>Simulation Mode</label>
                     <div class="toggle-group" id="modeToggle">
-                        <button class="toggle-btn active" data-mode="spring">Spring</button>
-                        <button class="toggle-btn" data-mode="wire">Wire</button>
+                        <button class="toggle-btn active" data-mode="spring">Hooke's Law</button>
+                        <button class="toggle-btn" data-mode="wire">Modulus of Elasticity</button>
                     </div>
                 </div>
 
@@ -260,6 +268,20 @@
                     </div>
                 </div>
                 <div class="control-group">
+                    <label for="extRange">Extension (ΔL): <span id="extVal">0.05</span> m</label>
+                    <div class="input-row">
+                        <input type="range" id="extRange" min="0" max="10" step="0.001" value="0.05">
+                        <input type="number" id="extNumber" min="0" max="10" step="0.001" value="0.05">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="lRange">Total Length (L): <span id="lVal">2.05</span> m</label>
+                    <div class="input-row">
+                        <input type="range" id="lRange" min="0.1" max="20" step="0.01" value="2.05">
+                        <input type="number" id="lNumber" min="0.1" max="20" step="0.01" value="2.05">
+                    </div>
+                </div>
+                <div class="control-group mode-wire-only">
                     <label for="aRange">Cross-sectional Area (A): <span id="aVal">0.0010</span> m²</label>
                     <div class="input-row">
                         <input type="range" id="aRange" min="1e-9" max="0.01" step="1e-9" value="0.0010">
@@ -284,11 +306,11 @@
                     <div class="result-label">Extension (ΔL)</div>
                     <div class="result-value"><span id="extRes">0.00</span> m</div>
                 </div>
-                <div class="result-item">
+                <div class="result-item mode-wire-only">
                     <div class="result-label">Stress (σ)</div>
                     <div class="result-value"><span id="stressRes">0.00</span> N/m²</div>
                 </div>
-                <div class="result-item">
+                <div class="result-item mode-wire-only">
                     <div class="result-label">Strain (ε)</div>
                     <div class="result-value"><span id="strainRes">0.0000</span></div>
                 </div>
@@ -296,14 +318,14 @@
                     <div class="result-label">Elastic Potential Energy (U)</div>
                     <div class="result-value"><span id="epeRes">0.00</span> J</div>
                 </div>
-                <div class="result-item">
+                <div class="result-item mode-wire-only">
                     <div class="result-label">Young's Modulus (Y)</div>
                     <div class="result-value"><span id="youngRes">0.00</span> N/m²</div>
                 </div>
             </div>
 
             <div class="card">
-                <h3 style="margin-bottom: 0.5rem;">Stress-Strain Curve</h3>
+                <h3 style="margin-bottom: 0.5rem;" id="graphTitle">Stress-Strain Curve</h3>
                 <canvas id="graphCanvas" width="300" height="180"></canvas>
             </div>
         </section>
@@ -323,6 +345,8 @@
             k: 100,
             area: 0.0010,
             l0: 2.0,
+            totalLength: 2.05,
+            extensionInput: 0.05,
             force: 0,
             extension: 0,
             stress: 0,
@@ -333,7 +357,9 @@
 
         let visualState = {
             extension: 0,
-            mass: 5.0
+            mass: 5.0,
+            targetExtension: 0,
+            velocity: 0
         };
 
         // DOM Elements
@@ -344,6 +370,12 @@
             kRange: document.getElementById('kRange'),
             kNumber: document.getElementById('kNumber'),
             kVal: document.getElementById('kVal'),
+            extRange: document.getElementById('extRange'),
+            extNumber: document.getElementById('extNumber'),
+            extVal: document.getElementById('extVal'),
+            lRange: document.getElementById('lRange'),
+            lNumber: document.getElementById('lNumber'),
+            lVal: document.getElementById('lVal'),
             aRange: document.getElementById('aRange'),
             aNumber: document.getElementById('aNumber'),
             aVal: document.getElementById('aVal'),
@@ -383,6 +415,14 @@
             elements.kRange.addEventListener('input', (e) => syncInputs('k', e.target.value, e.target));
             elements.kNumber.addEventListener('input', (e) => syncInputs('k', e.target.value, e.target));
 
+            // Extension
+            elements.extRange.addEventListener('input', (e) => syncInputs('extensionInput', e.target.value, e.target));
+            elements.extNumber.addEventListener('input', (e) => syncInputs('extensionInput', e.target.value, e.target));
+
+            // Total Length
+            elements.lRange.addEventListener('input', (e) => syncInputs('totalLength', e.target.value, e.target));
+            elements.lNumber.addEventListener('input', (e) => syncInputs('totalLength', e.target.value, e.target));
+
             // Area
             elements.aRange.addEventListener('input', (e) => syncInputs('area', e.target.value, e.target));
             elements.aNumber.addEventListener('input', (e) => syncInputs('area', e.target.value, e.target));
@@ -397,6 +437,14 @@
                     state.simulationMode = e.target.dataset.mode;
                     Array.from(elements.modeToggle.children).forEach(btn => btn.classList.remove('active'));
                     e.target.classList.add('active');
+
+                    if (state.simulationMode === 'spring') {
+                        document.body.classList.add('mode-hooke');
+                        document.getElementById('graphTitle').textContent = "Force vs. Extension";
+                    } else {
+                        document.body.classList.remove('mode-hooke');
+                        document.getElementById('graphTitle').textContent = "Stress-Strain Curve";
+                    }
                     update();
                 }
             });
@@ -440,25 +488,61 @@
             state[key] = isNaN(val) ? 0 : val;
 
             const updateEl = (el, v) => {
-                if (el !== source) el.value = v;
+                if (el && el !== source && document.activeElement !== el) el.value = v;
             };
 
-            if (key === 'mass' || key === 'forceInput') {
-                updateEl(elements.massRange, state[key]);
-                updateEl(elements.massNumber, state[key]);
-            } else if (key === 'k') {
-                updateEl(elements.kRange, state.k);
-                updateEl(elements.kNumber, state.k);
-                elements.kVal.innerHTML = formatScientific(state.k, 2);
-            } else if (key === 'area') {
-                updateEl(elements.aRange, state.area);
-                updateEl(elements.aNumber, state.area);
-                elements.aVal.innerHTML = formatScientific(state.area, 2);
-            } else if (key === 'l0') {
-                updateEl(elements.l0Range, state.l0);
-                updateEl(elements.l0Number, state.l0);
-                elements.l0Val.innerHTML = formatScientific(state.l0, 2);
+            // Calculate Force
+            if (state.inputMode === 'mass') {
+                state.force = state.mass * G;
+            } else {
+                state.force = state.forceInput;
             }
+
+            // Bidirectional Logic
+            if (key === 'mass' || key === 'forceInput') {
+                // F changed -> update extension and total length
+                state.extensionInput = state.force / state.k;
+                state.totalLength = state.l0 + state.extensionInput;
+            } else if (key === 'k') {
+                // k changed -> update extension and total length
+                state.extensionInput = state.k !== 0 ? state.force / state.k : 0;
+                state.totalLength = state.l0 + state.extensionInput;
+            } else if (key === 'extensionInput') {
+                // ΔL changed -> update k and total length
+                state.k = state.extensionInput !== 0 ? state.force / state.extensionInput : 0;
+                state.totalLength = state.l0 + state.extensionInput;
+            } else if (key === 'totalLength') {
+                // L changed -> update ΔL and k
+                state.extensionInput = state.totalLength - state.l0;
+                state.k = state.extensionInput !== 0 ? state.force / state.extensionInput : 0;
+            } else if (key === 'l0') {
+                // L0 changed -> update L
+                state.totalLength = state.l0 + state.extensionInput;
+            }
+
+            // Update all related UI elements
+            updateEl(elements.massRange, state.inputMode === 'mass' ? state.mass : state.forceInput);
+            updateEl(elements.massNumber, state.inputMode === 'mass' ? state.mass : state.forceInput);
+
+            updateEl(elements.kRange, state.k);
+            updateEl(elements.kNumber, state.k);
+            elements.kVal.innerHTML = formatScientific(state.k, 2);
+
+            updateEl(elements.extRange, state.extensionInput);
+            updateEl(elements.extNumber, state.extensionInput);
+            elements.extVal.innerHTML = formatScientific(state.extensionInput, 3);
+
+            updateEl(elements.lRange, state.totalLength);
+            updateEl(elements.lNumber, state.totalLength);
+            elements.lVal.innerHTML = formatScientific(state.totalLength, 3);
+
+            updateEl(elements.l0Range, state.l0);
+            updateEl(elements.l0Number, state.l0);
+            elements.l0Val.innerHTML = formatScientific(state.l0, 2);
+
+            updateEl(elements.aRange, state.area);
+            updateEl(elements.aNumber, state.area);
+            elements.aVal.innerHTML = formatScientific(state.area, 2);
 
             update();
         }
@@ -472,7 +556,7 @@
             }
 
             // Extension: e = F / k
-            state.extension = state.force / state.k;
+            state.extension = state.k !== 0 ? state.force / state.k : 0;
 
             // Stress: sigma = F / A
             state.stress = state.force / state.area;
@@ -481,7 +565,6 @@
             state.strain = state.extension / state.l0;
 
             // Young's Modulus: Y = stress / strain
-            // Y = (F/A) / (deltaL / L0) = (F * L0) / (A * deltaL) = (k * L0) / A
             state.youngsModulus = (state.k * state.l0) / state.area;
 
             // Elastic Potential Energy: EPE = 1/2 * F * e = 1/2 * k * e^2
@@ -514,6 +597,34 @@
 
             const startX = width / 2;
             const startY = 50;
+
+            const baseLength = state.l0 * 40; // Scale 1m = 40px
+            const currentLength = (state.l0 + visualState.extension) * 40;
+
+            // Draw Natural Length Marker (L0)
+            ctx.setLineDash([2, 2]);
+            ctx.strokeStyle = '#94a3b8';
+            ctx.beginPath();
+            ctx.moveTo(startX - 80, startY + baseLength);
+            ctx.lineTo(startX + 80, startY + baseLength);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'italic 10px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText(`L₀ = ${state.l0.toFixed(2)}m`, startX - 85, startY + baseLength);
+
+            // Draw Total Length Marker (L)
+            ctx.strokeStyle = '#2563eb';
+            ctx.beginPath();
+            ctx.moveTo(startX - 70, startY + currentLength);
+            ctx.lineTo(startX + 70, startY + currentLength);
+            ctx.stroke();
+
+            ctx.fillStyle = '#2563eb';
+            ctx.textAlign = 'right';
+            ctx.fillText(`L = ${(state.l0 + state.extension).toFixed(2)}m`, startX - 75, startY + currentLength + 12);
 
             // Draw Ruler
             const rulerX = width - 60;
@@ -556,9 +667,6 @@
             ctx.shadowOffsetY = 0;
 
             // Draw Material
-            const baseLength = state.l0 * 40; // Scale 1m = 40px
-            const totalVisualLength = state.l0 + visualState.extension;
-            const currentLength = totalVisualLength * 40;
             const isBeyondLimit = state.strain > 1.0;
 
             if (state.simulationMode === 'spring') {
@@ -687,9 +795,9 @@
 
             ctx.clearRect(0, 0, width, height);
 
-            const margin = 30;
-            const plotW = width - margin * 2;
-            const plotH = height - margin * 2;
+            const margin = 40;
+            const plotW = width - margin * 1.5;
+            const plotH = height - margin * 1.5;
 
             // Draw Axes
             ctx.strokeStyle = '#334155';
@@ -697,41 +805,45 @@
             ctx.beginPath();
             ctx.moveTo(margin, margin);
             ctx.lineTo(margin, height - margin);
-            ctx.lineTo(width - margin, height - margin);
+            ctx.lineTo(width - margin/2, height - margin);
             ctx.stroke();
+
+            // Mode-specific constants and labels
+            let xLabel, yLabel, currentXVal, currentYVal, maxX, maxY;
+
+            if (state.simulationMode === 'spring') {
+                xLabel = 'Extension ΔL (m)';
+                yLabel = 'Force F (N)';
+                currentXVal = state.extension;
+                currentYVal = state.force;
+                maxX = Math.max(10, state.extension * 1.5);
+                maxY = Math.max(1000, state.force * 1.5);
+            } else {
+                xLabel = 'Strain ε';
+                yLabel = 'Stress σ (N/m²)';
+                currentXVal = state.strain;
+                currentYVal = state.stress;
+                maxX = 2.0;
+                maxY = 5e7;
+            }
 
             // Labels
             ctx.fillStyle = '#64748b';
             ctx.font = '10px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('Strain (ε)', width / 2, height - 5);
+            ctx.fillText(xLabel, width / 2, height - 10);
 
             ctx.save();
-            ctx.translate(10, height / 2);
+            ctx.translate(12, height / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.fillText('Stress (σ)', 0, 0);
+            ctx.fillText(yLabel, 0, 0);
             ctx.restore();
 
-            // Plot Curve (Straight line for Hooke's Law)
-            const maxStrain = 2.0;
-            const maxStress = 5e7; // Scale for Pa
-
-            // Draw full elastic region line (dashed)
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath();
-            ctx.moveTo(margin, height - margin);
-            const limitX = margin + (1.0 / maxStrain) * plotW;
-            const limitY = (height - margin) - ((state.youngsModulus * 1.0) / maxStress) * plotH;
-            ctx.lineTo(limitX, limitY);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            const currentX = margin + (state.strain / maxStrain) * plotW;
-            const currentY = (height - margin) - (state.stress / maxStress) * plotH;
+            const currentX = margin + (currentXVal / maxX) * plotW;
+            const currentY = (height - margin) - (currentYVal / maxY) * plotH;
 
             // Constrain plot
-            const targetX = Math.min(width - margin, currentX);
+            const targetX = Math.min(width - margin/2, currentX);
             const targetY = Math.max(margin, currentY);
 
             const isBeyondLimit = (state.l0 + state.extension) > MAX_VISUAL_LENGTH || state.strain > 1.0;
@@ -750,10 +862,17 @@
         }
 
         function animate() {
-            // Smoothly interpolate visual state
-            const ease = 0.15;
-            visualState.extension += (state.extension - visualState.extension) * ease;
-            visualState.mass += (state.mass - visualState.mass) * ease;
+            // Damped Harmonic Oscillation for Visual Extension
+            const k_vis = 0.15; // spring constant for visual smoothing
+            const d_vis = 0.75; // damping coefficient
+
+            const force_vis = (state.extension - visualState.extension) * k_vis;
+            visualState.velocity += force_vis;
+            visualState.velocity *= d_vis;
+            visualState.extension += visualState.velocity;
+
+            // Smoothly interpolate mass
+            visualState.mass += (state.mass - visualState.mass) * 0.15;
 
             drawSimulation();
             drawGraph();
@@ -767,6 +886,16 @@
 
         function init() {
             setupEventListeners();
+
+            // Set initial mode class
+            if (state.simulationMode === 'spring') {
+                document.body.classList.add('mode-hooke');
+                document.getElementById('graphTitle').textContent = "Force vs. Extension";
+            } else {
+                document.body.classList.remove('mode-hooke');
+                document.getElementById('graphTitle').textContent = "Stress-Strain Curve";
+            }
+
             update();
             animate();
         }
