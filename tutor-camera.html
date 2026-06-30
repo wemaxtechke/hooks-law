@@ -198,7 +198,7 @@
 
                     Hold up your physical workbook to the camera, ensuring your calculations are clearly visible, and click "Analyze My Workspace".
 
-                    The AI Tutor will review your Hooke's Law steps and provide instant guidance.
+                    The on-device AI will review your Hooke's Law steps and provide instant guidance.
                 </div>
             </div>
         </section>
@@ -241,7 +241,7 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Convert to base64 (NVIDIA expects just the base64 string, not the data URL prefix)
+            // Convert to base64
             const base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
             try {
@@ -296,7 +296,7 @@
                 feedbackDisplay.textContent = data.choices[0].message.content;
             } catch (err) {
                 console.error("AI Analysis error:", err);
-                feedbackDisplay.textContent = "Error during analysis: " + err.message;
+                feedbackDisplay.textContent = "Error during analysis: " + err.message + "\n\nNote: If you see CORS errors, ensure you are running this from a local server (http://localhost) and consider using a browser extension to allow CORS for development.";
             } finally {
                 analyzeBtn.disabled = false;
             }
