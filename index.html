@@ -547,8 +547,31 @@
             transform: scale(1.05);
         }
     </style>
+    <style>
+        #corsWarning {
+            background: #fffbeb;
+            border-bottom: 1px solid #fde68a;
+            color: #92400e;
+            padding: 0.75rem;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        [data-theme='dark'] #corsWarning {
+            background: #451a03;
+            border-color: #92400e;
+            color: #fef3c7;
+        }
+        #corsWarning b { color: var(--primary-color); }
+    </style>
 </head>
 <body>
+    <div id="corsWarning">
+        ⚠️ <b>Limited functionality detected.</b> To enable the <b>3D Lab</b> and full offline features, please run <b>launch_lab.bat</b> in your project folder.
+    </div>
     <header>
         <button id="themeToggle" class="theme-toggle" title="Toggle Dark Mode">🌓</button>
         <h1>Hooke's Law & Elasticity</h1>
@@ -2128,7 +2151,15 @@
             updateStepByStepCalculations();
         }
 
+        function checkProtocol() {
+            if (window.location.protocol === 'file:') {
+                document.getElementById('corsWarning').style.display = 'block';
+                console.warn("Project is running via file:// protocol. ES Modules (3D Lab) will be blocked by CORS. Please use the provided launch_lab.bat for the full experience.");
+            }
+        }
+
         function init() {
+            checkProtocol();
             setupEventListeners();
             updateCalculatedStyles();
             startOnboarding();

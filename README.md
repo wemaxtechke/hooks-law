@@ -66,5 +66,14 @@ The "Solution" panel provides a real-time, mathematically accurate derivation fo
     - Read the **Solution** panel to see the mathematical steps taken.
     - Observe the **Graph** to see the linear relationship.
 
+## 🛠️ Offline & Local Setup
+
+To ensure the **3D Lab** and all advanced features work correctly without internet access, use the provided local server launcher:
+
+1.  **Windows**: Double-click `launch_lab.bat`. This will start a local server and automatically open the simulation in your browser.
+2.  **macOS/Linux/Manual**: Run `python server.py` in your terminal, then visit `http://localhost:8000`.
+
+*Note: Running via `file://` (clicking index.html directly) works for the 2D simulator but will block 3D Lab features due to browser CORS policies.*
+
 ---
 *Designed for offline educational use in high school physics labs and classrooms.*
