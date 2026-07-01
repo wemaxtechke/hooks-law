@@ -501,7 +501,7 @@
         scene.background = new THREE.Color(0x1e293b);
 
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-        camera.position.set(3, 4, 6);
+        camera.position.set(5, 5, 8);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
@@ -575,6 +575,69 @@
         rightWall.rotation.y = -Math.PI / 2;
         rightWall.receiveShadow = true;
         labFurniture.add(rightWall);
+
+        // Door
+        const doorMat = new THREE.MeshStandardMaterial({ color: 0x92400e });
+        const door = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4, 2), doorMat);
+        door.position.set(-9.95, 2, 5);
+        labFurniture.add(door);
+
+        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshStandardMaterial({ color: 0xfde68a, metalness: 0.8 }));
+        knob.position.set(-9.8, 2, 4.2);
+        labFurniture.add(knob);
+
+        // Side Counter
+        const counterGeo = new THREE.BoxGeometry(3, 0.9, 10);
+        const counterMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.5 });
+        const counter = new THREE.Mesh(counterGeo, counterMat);
+        counter.position.set(8.5, 0.45, 0);
+        counter.castShadow = true;
+        counter.receiveShadow = true;
+        labFurniture.add(counter);
+
+        // Sink
+        const sinkGeo = new THREE.BoxGeometry(1.5, 0.1, 1.5);
+        const sinkMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8 });
+        const sink = new THREE.Mesh(sinkGeo, sinkMat);
+        sink.position.set(8.5, 0.9, 0);
+        labFurniture.add(sink);
+
+        const tapBase = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 }));
+        tapBase.position.set(9, 1.1, 0);
+        labFurniture.add(tapBase);
+
+        const tapTop = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.3), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 }));
+        tapTop.rotation.z = Math.PI / 2;
+        tapTop.position.set(8.85, 1.3, 0);
+        labFurniture.add(tapTop);
+
+        // Test Tube Rack
+        const rackGroup = new THREE.Group();
+        rackGroup.position.set(8.5, 0.9, -3);
+        labFurniture.add(rackGroup);
+
+        const rackBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 1), new THREE.MeshStandardMaterial({ color: 0x64748b }));
+        rackGroup.add(rackBase);
+
+        const colors = [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b];
+        for(let i=0; i<4; i++) {
+            const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.4), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+            tube.position.set(0, 0.25, -0.3 + i*0.2);
+            rackGroup.add(tube);
+
+            const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.2), new THREE.MeshStandardMaterial({ color: colors[i] }));
+            liquid.position.set(0, 0.15, -0.3 + i*0.2);
+            rackGroup.add(liquid);
+        }
+
+        // Whiteboard
+        const whiteboard = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+        whiteboard.position.set(0, 5, -9.9);
+        labFurniture.add(whiteboard);
+
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(8.2, 4.2, 0.05), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+        frame.position.set(0, 5, -9.95);
+        labFurniture.add(frame);
 
         // Support Structure
         const metalMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
