@@ -13,6 +13,32 @@
             --border-color: #e2e8f0;
             --accent-color: #3b82f6;
             --formula-bg: #f1f5f9;
+            --muted-text: #475569;
+            --example-bg: #fffbeb;
+            --example-border: #fef3c7;
+            --example-text: #92400e;
+            --tag-bg: #fee2e2;
+            --tag-text: #b91c1c;
+            --question-bg: #fdfdfd;
+            --shadow-color: rgba(0,0,0,0.1);
+        }
+
+        [data-theme='dark'] {
+            --primary-color: #60a5fa;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --border-color: #334155;
+            --accent-color: #3b82f6;
+            --formula-bg: #334155;
+            --muted-text: #94a3b8;
+            --example-bg: #451a03;
+            --example-border: #92400e;
+            --example-text: #fef3c7;
+            --tag-bg: #7f1d1d;
+            --tag-text: #fef2f2;
+            --question-bg: #334155;
+            --shadow-color: rgba(0,0,0,0.3);
         }
 
         body {
@@ -31,7 +57,7 @@
             color: white;
             padding: 1.5rem 2rem;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px var(--shadow-color);
         }
 
         .nav-links {
@@ -71,7 +97,7 @@
             padding: 2.5rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px var(--shadow-color);
             margin-bottom: 2rem;
         }
 
@@ -91,24 +117,24 @@
         }
 
         .example-box {
-            background: #fffbeb;
+            background: var(--example-bg);
             padding: 1.5rem;
             border-radius: 8px;
-            border: 1px solid #fef3c7;
+            border: 1px solid var(--example-border);
             margin: 1.5rem 0;
         }
 
         .example-title {
             font-weight: bold;
-            color: #92400e;
+            color: var(--example-text);
             margin-bottom: 0.5rem;
             display: block;
         }
 
         .note-tag {
             display: inline-block;
-            background: #fee2e2;
-            color: #b91c1c;
+            background: var(--tag-bg);
+            color: var(--tag-text);
             padding: 0.2rem 0.6rem;
             border-radius: 4px;
             font-size: 0.8rem;
@@ -138,7 +164,7 @@
         }
 
         th {
-            background-color: #f8fafc;
+            background-color: var(--bg-color);
         }
 
         .practice-section {
@@ -146,7 +172,7 @@
         }
 
         .question {
-            background: #fdfdfd;
+            background: var(--question-bg);
             border: 1px solid var(--border-color);
             padding: 1rem;
             border-radius: 8px;
@@ -176,7 +202,7 @@
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px dashed var(--border-color);
-            color: #475569;
+            color: var(--muted-text);
         }
 
         .fraction {
@@ -193,10 +219,35 @@
         @media (max-width: 600px) {
             .card { padding: 1.5rem; }
         }
+
+        .theme-toggle {
+            position: absolute;
+            right: 2rem;
+            top: 1.5rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
     <header>
+        <button id="themeToggle" class="theme-toggle" title="Toggle Dark Mode">🌓</button>
         <h1>Hooke's Law & Elasticity</h1>
         <nav class="nav-links">
             <a href="index.html">Simulation</a>
@@ -321,6 +372,22 @@
     </main>
 
     <script>
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        }
+        initTheme();
+
         function toggleSolution(id) {
             const sol = document.getElementById('sol' + id);
             const btn = sol.previousElementSibling;
