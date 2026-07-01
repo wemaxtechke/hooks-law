@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Physics Lab - Hooke's Law</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0,0,0,0.1);
+        }
+
+        [data-theme='dark'] {
+            --primary-color: #60a5fa;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --border-color: #334155;
+            --shadow-color: rgba(0,0,0,0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            z-index: 10;
+        }
+
+        .nav-links {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .nav-links a.active {
+            opacity: 1;
+            border-bottom: 2px solid white;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px var(--shadow-color);
+            width: 250px;
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            right: 2rem;
+            top: 1rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button id="themeToggle" class="theme-toggle" title="Toggle Dark Mode">🌓</button>
+        <h1>3D Physics Lab</h1>
+        <nav class="nav-links">
+            <a href="index.html">2D Simulation</a>
+            <a href="lab3d.html" class="active">3D Lab</a>
+            <a href="notes.html">Study Notes</a>
+        </nav>
+    </header>
+
+    <div id="canvas-container">
+        <div class="controls-overlay">
+            <h3 style="margin-top: 0;">Lab Controls</h3>
+            <div class="control-group">
+                <label>Spring Extension: <span id="extVal">0.5</span>m</label>
+                <input type="range" id="extRange" min="0.1" max="2.0" step="0.01" value="0.5">
+            </div>
+            <div class="control-group">
+                <label>Spring Coils</label>
+                <input type="range" id="coilsRange" min="5" max="30" step="1" value="15">
+            </div>
+            <p style="font-size: 0.8rem; color: var(--muted-text);">Interact with the scene to explore the 3D lab setup.</p>
+        </div>
+        <div class="instruction">Left click to Rotate | Right click to Pan | Scroll to Zoom</div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./lib/three.module.js",
+                "three/addons/": "./lib/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/OrbitControls.js';
+
+        // Helix Curve Class
+        class HelixCurve extends THREE.Curve {
+            constructor(radius = 0.5, height = 2, coils = 10) {
+                super();
+                this.radius = radius;
+                this.height = height;
+                this.coils = coils;
+            }
+
+            getPoint(t, optionalTarget = new THREE.Vector3()) {
+                const angle = 2 * Math.PI * this.coils * t;
+                const tx = this.radius * Math.cos(angle);
+                const ty = t * this.height;
+                const tz = this.radius * Math.sin(angle);
+                return optionalTarget.set(tx, ty, tz);
+            }
+        }
+
+        // Scene setup
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1e293b);
+
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(2, 3, 5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 1, 0);
+        controls.update();
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5, 10, 5);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // Physics Lab Table
+        function createTable() {
+            const tableGroup = new THREE.Group();
+
+            // Table Top
+            const topGeo = new THREE.BoxGeometry(4, 0.2, 2.5);
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+            const top = new THREE.Mesh(topGeo, woodMat);
+            top.position.y = 1;
+            top.receiveShadow = true;
+            top.castShadow = true;
+            tableGroup.add(top);
+
+            // Legs
+            const legGeo = new THREE.BoxGeometry(0.15, 1, 0.15);
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f });
+
+            const legPositions = [
+                [1.8, 0.5, 1.1],
+                [-1.8, 0.5, 1.1],
+                [1.8, 0.5, -1.1],
+                [-1.8, 0.5, -1.1]
+            ];
+
+            legPositions.forEach(pos => {
+                const leg = new THREE.Mesh(legGeo, legMat);
+                leg.position.set(...pos);
+                leg.castShadow = true;
+                tableGroup.add(leg);
+            });
+
+            return tableGroup;
+        }
+
+        const table = createTable();
+        scene.add(table);
+
+        // Floor
+        const floorGeo = new THREE.PlaneGeometry(20, 20);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x334155 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Support Post for the spring
+        const postGeo = new THREE.CylinderGeometry(0.05, 0.05, 2.5);
+        const metalMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
+        const post = new THREE.Mesh(postGeo, metalMat);
+        post.position.set(-1.5, 2.25, 0);
+        post.castShadow = true;
+        scene.add(post);
+
+        const horizontalPostGeo = new THREE.CylinderGeometry(0.05, 0.05, 1);
+        const hPost = new THREE.Mesh(horizontalPostGeo, metalMat);
+        hPost.rotation.z = Math.PI / 2;
+        hPost.position.set(-1, 3.5, 0);
+        hPost.castShadow = true;
+        scene.add(hPost);
+
+        // Spring
+        let springMesh;
+        const springGroup = new THREE.Group();
+        springGroup.position.set(-0.5, 3.5, 0);
+        springGroup.rotation.x = Math.PI; // Hang downwards
+        scene.add(springGroup);
+
+        function updateSpring(height, coils) {
+            if (springMesh) {
+                springGroup.remove(springMesh);
+                springMesh.geometry.dispose();
+            }
+
+            const curve = new HelixCurve(0.2, height, coils);
+            const tubeGeo = new THREE.TubeGeometry(curve, 150, 0.01, 8, false);
+            const springMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.7, roughness: 0.3 });
+            springMesh = new THREE.Mesh(tubeGeo, springMat);
+            springMesh.castShadow = true;
+            springGroup.add(springMesh);
+
+            // Update weight position
+            weight.position.y = height + 0.2;
+        }
+
+        // Hanging Weight
+        const weightGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+        const weightMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+        const weight = new THREE.Mesh(weightGeo, weightMat);
+        weight.castShadow = true;
+        springGroup.add(weight);
+
+        // Initial Spring
+        updateSpring(0.5, 15);
+
+        // Controls
+        const extRange = document.getElementById('extRange');
+        const extVal = document.getElementById('extVal');
+        const coilsRange = document.getElementById('coilsRange');
+
+        extRange.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            extVal.textContent = val.toFixed(2);
+            updateSpring(val, parseInt(coilsRange.value));
+        });
+
+        coilsRange.addEventListener('input', (e) => {
+            updateSpring(parseFloat(extRange.value), parseInt(e.target.value));
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            updateTheme();
+
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateTheme();
+            });
+        }
+
+        function updateTheme() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            if (theme === 'dark') {
+                scene.background = new THREE.Color(0x0f172a);
+                floor.material.color.setHex(0x1e293b);
+            } else {
+                scene.background = new THREE.Color(0xf8fafc);
+                floor.material.color.setHex(0xe2e8f0);
+            }
+        }
+
+        initTheme();
+
+    </script>
+</body>
+</html>

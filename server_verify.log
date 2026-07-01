@@ -1,0 +1,6 @@
+127.0.0.1 - - [01/Jul/2026 11:41:46] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jul/2026 11:41:47] "GET /index.html HTTP/1.1" 304 -
+127.0.0.1 - - [01/Jul/2026 11:41:47] "GET /lab3d.html HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jul/2026 11:41:47] "GET /lib/three.module.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jul/2026 11:41:47] "GET /lib/OrbitControls.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jul/2026 11:41:55] "GET /notes.html HTTP/1.1" 200 -
