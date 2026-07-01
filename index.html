@@ -1527,6 +1527,7 @@
 
             const baseLength = state.l0 * 40; // Scale 1m = 40px
             const currentLength = (state.l0 + visualState.extension) * 40;
+            const weightY = startY + currentLength;
 
             // Draw Natural Length Marker (L0)
             ctx.setLineDash([2, 2]);
