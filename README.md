@@ -22,10 +22,19 @@ When a target is selected, its input fields are automatically disabled and highl
 ### 3. Step-by-Step Solutions
 The "Solution" panel provides a real-time, mathematically accurate derivation for the selected target. Formulas are rendered with professional formatting, including fractions and scientific notation, making it an excellent tool for classroom demonstrations.
 
-### 4. Interactive Visuals
-- **Dynamic Physics**: The simulation uses damped harmonic oscillation to provide smooth, realistic visual movement of the spring and weights.
-- **Magnified View**: For precision, small extensions (especially in wire mode) are shown in a magnified window (up to 20,000x) to make microscopic changes visible.
-- **Live Graphing**: Automatically plots either a **Force vs. Extension** or **Stress vs. Strain** curve as you adjust inputs.
+### 4. Advanced Physics Variations
+- **Series & Parallel Configuration**: Toggle between single springs and systems in series or parallel to see how $k_{eff}$ changes.
+- **Comparison Mode**: Benchmarked active springs against a reference to visualize differences in stiffness.
+
+### 5. Gamification & Engagement
+- **Challenge Mode**: Solve "Mystery Mass" puzzles or complete "Lab Quests" by engineering systems to exact specifications.
+- **Achievement System**: Unlock badges like "Limit Breaker" or "Master Engineer" that persist in your browser.
+- **Object Gallery**: Hang real-world objects like Apples, Bowling Balls, and even Cars instead of generic weights.
+
+### 6. Interactive Visuals & Sensory Feedback
+- **Interactive Graphing**: Drag the point directly on the plot to update the physical simulation in real-time.
+- **Procedural Audio**: Experience the tension with synthetic "creak" sounds and a "snap" when reaching the elastic limit.
+- **Environmental Presets**: Switch between a Physics Lab, a measurement Grid, or the surface of Mars (with matching gravity!).
 
 ## 📚 Physics Implementation
 

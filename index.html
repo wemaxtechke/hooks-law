@@ -34,6 +34,64 @@
             position: relative;
         }
 
+        #achievementToast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transform: translateY(100px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+
+        #achievementToast.show {
+            transform: translateY(0);
+        }
+
+        .badge-icon {
+            font-size: 2rem;
+        }
+
+        #onboardingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .onboarding-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
         .nav-links {
             margin-top: 0.5rem;
             display: flex;
@@ -92,6 +150,8 @@
             border-radius: 8px;
             max-width: 100%;
             height: auto;
+            position: relative;
+            z-index: 1;
         }
 
         .controls-container {
@@ -155,7 +215,31 @@
         .input-row {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.5rem;
+        }
+
+        .step-btn {
+            background: #e2e8f0;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-color);
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .step-btn:hover {
+            background: #cbd5e1;
+        }
+
+        .step-btn:active {
+            background: #94a3b8;
         }
 
         input[type="range"] {
@@ -212,6 +296,12 @@
         body.mode-hooke .mode-wire-only {
             display: none;
         }
+        .mode-hooke-only {
+            display: none;
+        }
+        body.mode-hooke .mode-hooke-only {
+            display: block;
+        }
 
         .warning {
             color: #b91c1c;
@@ -267,6 +357,46 @@
             border-color: #7dd3fc !important;
             opacity: 0.8;
             pointer-events: none;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .preset-btn {
+            padding: 0.4rem;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #f1f5f9;
+            border-color: var(--primary-color);
+        }
+
+        .preset-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .setting-row label {
+            margin-bottom: 0;
+            font-size: 0.85rem;
         }
 
         .calculation-item {
@@ -340,6 +470,86 @@
         </section>
 
         <section class="controls-container">
+            <div id="challengeCard" class="card" style="background: #fffbeb; border-color: #fde68a; display: none;">
+                <h3 style="color: #92400e; margin-bottom: 0.5rem;">🎯 Active Challenge</h3>
+                <p id="challengeText" style="font-size: 0.9rem; margin-bottom: 1rem;"></p>
+                <div class="input-row" id="challengeInputRow" style="display: none;">
+                    <input type="number" id="challengeGuess" placeholder="Your guess..." style="flex: 1;">
+                    <button class="btn-primary" id="checkChallengeBtn" style="margin-top: 0;">Check</button>
+                </div>
+                <div id="challengeFeedback" style="margin-top: 0.5rem; font-weight: bold; font-size: 0.9rem;"></div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Environment & Material</h3>
+
+                <div class="setting-row">
+                    <label>Gravity</label>
+                    <div class="toggle-group" id="gravityToggle" style="margin-bottom: 0; flex: 1; margin-left: 1rem;">
+                        <button class="toggle-btn active" data-g="9.8">Earth</button>
+                        <button class="toggle-btn" data-g="1.6">Moon</button>
+                        <button class="toggle-btn" data-g="3.7">Mars</button>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <label>Notation</label>
+                    <div class="toggle-group" id="notationToggle" style="margin-bottom: 0; flex: 1; margin-left: 1rem;">
+                        <button class="toggle-btn active" data-notation="scientific">Sci.</button>
+                        <button class="toggle-btn" data-notation="standard">Std.</button>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <label>Environment</label>
+                    <div class="toggle-group" id="bgToggle" style="margin-bottom: 0; flex: 1; margin-left: 1rem;">
+                        <button class="toggle-btn active" data-bg="lab">Lab</button>
+                        <button class="toggle-btn" data-bg="grid">Grid</button>
+                        <button class="toggle-btn" data-bg="mars">Mars</button>
+                    </div>
+                </div>
+
+                <div class="control-group mode-hooke-only">
+                    <label>Spring Configuration</label>
+                    <div class="toggle-group" id="configToggle">
+                        <button class="toggle-btn active" data-config="single">Single</button>
+                        <button class="toggle-btn" data-config="parallel">Parallel</button>
+                        <button class="toggle-btn" data-config="series">Series</button>
+                        <button class="toggle-btn" data-config="compare">Compare</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Material Preset</label>
+                    <div class="preset-grid" id="materialPresets">
+                        <button class="preset-btn active" data-preset="custom">Custom</button>
+                        <button class="preset-btn" data-preset="steel">Steel</button>
+                        <button class="preset-btn" data-preset="copper">Copper</button>
+                        <button class="preset-btn" data-preset="rubber">Rubber</button>
+                        <button class="preset-btn" data-preset="silk">Spider Silk</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Object to Hang</label>
+                    <div class="preset-grid" id="objectGallery">
+                        <button class="preset-btn active" data-object="none">None</button>
+                        <button class="preset-btn" data-object="feather">Feather</button>
+                        <button class="preset-btn" data-object="apple">Apple</button>
+                        <button class="preset-btn" data-object="bowling">Bowling Ball</button>
+                        <button class="preset-btn" data-object="car">Small Car</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Learning Activities</label>
+                    <div class="preset-grid">
+                        <button class="preset-btn" id="startMysteryMass">Mystery Mass</button>
+                        <button class="preset-btn" id="startLabQuest">Lab Quest</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <h3 style="margin-bottom: 1rem;">Simulation Controls</h3>
 
@@ -370,44 +580,65 @@
                         <button class="toggle-btn" data-input="force">Force (N)</button>
                     </div>
                     <div class="input-row">
+                        <button class="step-btn" data-input="massNumber" data-step="-1">-</button>
                         <input type="range" id="massRange" min="0" max="500" step="0.1" value="5.0">
                         <input type="number" id="massNumber" min="0" max="500" step="0.1" value="5.0">
+                        <button class="step-btn" data-input="massNumber" data-step="1">+</button>
                     </div>
                 </div>
 
                 <div class="control-group">
                     <label for="kRange">Spring Constant (k): <span id="kVal">100</span> N/m</label>
                     <div class="input-row">
+                        <button class="step-btn" data-input="kNumber" data-step="-1">-</button>
                         <input type="range" id="kRange" min="0.1" max="10000" step="0.1" value="100">
                         <input type="number" id="kNumber" min="0.1" max="10000" step="0.1" value="100">
+                        <button class="step-btn" data-input="kNumber" data-step="1">+</button>
+                    </div>
+                </div>
+                <div class="control-group mode-compare-only" style="display: none;" id="refKGroup">
+                    <label for="refKRange">Ref. Spring Constant: <span id="refKVal">200</span> N/m</label>
+                    <div class="input-row">
+                        <button class="step-btn" data-input="refKNumber" data-step="-1">-</button>
+                        <input type="range" id="refKRange" min="0.1" max="10000" step="0.1" value="200">
+                        <input type="number" id="refKNumber" min="0.1" max="10000" step="0.1" value="200">
+                        <button class="step-btn" data-input="refKNumber" data-step="1">+</button>
                     </div>
                 </div>
                 <div class="control-group">
                     <label for="extRange">Extension (ΔL): <span id="extVal">0.05</span> m</label>
                     <div class="input-row">
+                        <button class="step-btn" data-input="extNumber" data-step="-0.01">-</button>
                         <input type="range" id="extRange" min="0" max="10" step="0.001" value="0.05">
                         <input type="number" id="extNumber" min="0" max="10" step="0.001" value="0.05">
+                        <button class="step-btn" data-input="extNumber" data-step="0.01">+</button>
                     </div>
                 </div>
                 <div class="control-group">
                     <label for="lRange">Total Length (L): <span id="lVal">2.05</span> m</label>
                     <div class="input-row">
+                        <button class="step-btn" data-input="lNumber" data-step="-0.1">-</button>
                         <input type="range" id="lRange" min="0.1" max="20" step="0.01" value="2.05">
                         <input type="number" id="lNumber" min="0.1" max="20" step="0.01" value="2.05">
+                        <button class="step-btn" data-input="lNumber" data-step="0.1">+</button>
                     </div>
                 </div>
                 <div class="control-group mode-wire-only">
                     <label for="aRange">Cross-sectional Area (A): <span id="aVal">0.0010</span> m²</label>
                     <div class="input-row">
+                        <button class="step-btn" data-input="aNumber" data-step="-0.0001">-</button>
                         <input type="range" id="aRange" min="1e-9" max="0.01" step="1e-9" value="0.0010">
                         <input type="number" id="aNumber" min="1e-9" max="0.01" step="1e-9" value="0.0010">
+                        <button class="step-btn" data-input="aNumber" data-step="0.0001">+</button>
                     </div>
                 </div>
                 <div class="control-group">
                     <label for="l0Range">Original Length (L₀): <span id="l0Val">2.0</span> m</label>
                     <div class="input-row">
+                        <button class="step-btn" data-input="l0Number" data-step="-0.1">-</button>
                         <input type="range" id="l0Range" min="0.1" max="10" step="0.01" value="2.0">
                         <input type="number" id="l0Number" min="0.1" max="10" step="0.01" value="2.0">
+                        <button class="step-btn" data-input="l0Number" data-step="0.1">+</button>
                     </div>
                 </div>
             </div>
@@ -446,36 +677,79 @@
         </section>
     </main>
 
+    <div id="achievementToast">
+        <div class="badge-icon" id="badgeIcon">🏆</div>
+        <div>
+            <div style="font-weight: bold; font-size: 0.8rem; text-transform: uppercase; opacity: 0.7;">Achievement Unlocked!</div>
+            <div id="badgeName" style="font-size: 1.1rem; font-weight: 700;">Master of Modulus</div>
+        </div>
+    </div>
+
+    <div id="onboardingOverlay">
+        <div class="onboarding-card">
+            <h2 id="onboardingTitle">Welcome to Physics Lab!</h2>
+            <p id="onboardingText">This simulation helps you explore Hooke's Law and Elasticity. Ready for a quick tour?</p>
+            <button class="btn-primary" id="onboardingNext">Next Step</button>
+        </div>
+    </div>
+
     <script>
         // Constants
-        const G = 9.8; // Gravity (m/s²)
         const MAX_VISUAL_LENGTH = 12; // meters
+
+        const MATERIALS = {
+            steel: { k: 2000, area: 0.0001, e: 2e11 },
+            copper: { k: 1100, area: 0.0001, e: 1.1e11 },
+            rubber: { k: 50, area: 0.001, e: 1e8 },
+            silk: { k: 400, area: 0.00001, e: 1e10 }
+        };
+
+        const OBJECTS = {
+            none: 0,
+            feather: 0.001,
+            apple: 0.1,
+            bowling: 7.0,
+            car: 1200
+        };
 
         // State
         let state = {
+            g: 9.8,
+            notation: 'scientific',
+            bg: 'lab',
             mass: 5.0,
             forceInput: 49,
             inputMode: 'mass', // 'mass' or 'force'
             simulationMode: 'spring', // 'spring' or 'wire'
+            springConfig: 'single', // 'single', 'parallel', 'series', 'compare'
             k: 100,
+            refK: 200, // For comparison mode
             area: 0.0010,
             l0: 2.0,
             totalLength: 2.05,
             extensionInput: 0.05,
             force: 0,
             extension: 0,
+            refExtension: 0,
             stress: 0,
             strain: 0,
             youngsModulus: 0,
             epe: 0,
-            calculationTarget: 'force'
+            calculationTarget: 'force',
+            material: 'custom',
+            hangingObject: 'none',
+            isDraggingGraph: false,
+            challenge: null,
+            achievements: JSON.parse(localStorage.getItem('achievements') || '{}')
         };
 
         let visualState = {
             extension: 0,
+            refExtension: 0,
             mass: 5.0,
             targetExtension: 0,
-            velocity: 0
+            velocity: 0,
+            refVelocity: 0
         };
 
         let lastSelectionJson = "";
@@ -512,7 +786,31 @@
             inputLabel: document.getElementById('inputLabel'),
             calculationToggle: document.getElementById('calculationToggle'),
             calculationSteps: document.getElementById('calculationSteps'),
-            stepsContainer: document.getElementById('stepsContainer')
+            stepsContainer: document.getElementById('stepsContainer'),
+            gravityToggle: document.getElementById('gravityToggle'),
+            notationToggle: document.getElementById('notationToggle'),
+            materialPresets: document.getElementById('materialPresets'),
+            objectGallery: document.getElementById('objectGallery'),
+            graphCanvas: document.getElementById('graphCanvas'),
+            configToggle: document.getElementById('configToggle'),
+            refKRange: document.getElementById('refKRange'),
+            refKNumber: document.getElementById('refKNumber'),
+            refKVal: document.getElementById('refKVal'),
+            refKGroup: document.getElementById('refKGroup'),
+            challengeCard: document.getElementById('challengeCard'),
+            challengeText: document.getElementById('challengeText'),
+            challengeGuess: document.getElementById('challengeGuess'),
+            checkChallengeBtn: document.getElementById('checkChallengeBtn'),
+            challengeFeedback: document.getElementById('challengeFeedback'),
+            startMysteryMass: document.getElementById('startMysteryMass'),
+            startLabQuest: document.getElementById('startLabQuest'),
+            challengeInputRow: document.getElementById('challengeInputRow'),
+            achievementToast: document.getElementById('achievementToast'),
+            onboardingOverlay: document.getElementById('onboardingOverlay'),
+            onboardingTitle: document.getElementById('onboardingTitle'),
+            onboardingText: document.getElementById('onboardingText'),
+            onboardingNext: document.getElementById('onboardingNext'),
+            bgToggle: document.getElementById('bgToggle')
         };
 
 
@@ -568,6 +866,10 @@
             // k
             elements.kRange.addEventListener('input', (e) => syncInputs('k', e.target.value, e.target));
             elements.kNumber.addEventListener('input', (e) => syncInputs('k', e.target.value, e.target));
+
+            // refK
+            elements.refKRange.addEventListener('input', (e) => syncInputs('refK', e.target.value, e.target));
+            elements.refKNumber.addEventListener('input', (e) => syncInputs('refK', e.target.value, e.target));
 
             // Extension
             elements.extRange.addEventListener('input', (e) => syncInputs('extensionInput', e.target.value, e.target));
@@ -631,6 +933,16 @@
                 }
             });
 
+            elements.configToggle.addEventListener('click', (e) => {
+                if (e.target.dataset.config) {
+                    state.springConfig = e.target.dataset.config;
+                    Array.from(elements.configToggle.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    elements.refKGroup.style.display = state.springConfig === 'compare' ? 'block' : 'none';
+                    update();
+                }
+            });
+
             elements.calculationToggle.addEventListener('click', (e) => {
                 if (e.target.dataset.calc) {
                     const calc = e.target.dataset.calc;
@@ -644,11 +956,293 @@
                     update();
                 }
             });
+
+            elements.gravityToggle.addEventListener('click', (e) => {
+                if (e.target.dataset.g) {
+                    state.g = parseFloat(e.target.dataset.g);
+                    Array.from(elements.gravityToggle.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    syncInputs(state.inputMode === 'mass' ? 'mass' : 'forceInput', state.inputMode === 'mass' ? state.mass : state.forceInput);
+                }
+            });
+
+            elements.notationToggle.addEventListener('click', (e) => {
+                if (e.target.dataset.notation) {
+                    state.notation = e.target.dataset.notation;
+                    Array.from(elements.notationToggle.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    update();
+                }
+            });
+
+            elements.materialPresets.addEventListener('click', (e) => {
+                if (e.target.dataset.preset) {
+                    const preset = e.target.dataset.preset;
+                    state.material = preset;
+                    Array.from(elements.materialPresets.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    if (preset !== 'custom') {
+                        const props = MATERIALS[preset];
+                        state.k = props.k;
+                        state.area = props.area;
+                        syncInputs('k', state.k);
+                        syncInputs('area', state.area);
+                    }
+                }
+            });
+
+            elements.objectGallery.addEventListener('click', (e) => {
+                if (e.target.dataset.object) {
+                    const obj = e.target.dataset.object;
+                    state.hangingObject = obj;
+                    Array.from(elements.objectGallery.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    if (obj !== 'none') {
+                        state.mass = OBJECTS[obj];
+                        state.inputMode = 'mass';
+                        Array.from(elements.inputToggle.children).forEach(btn => btn.classList.toggle('active', btn.dataset.input === 'mass'));
+                        elements.inputLabel.textContent = 'Input: Mass (m)';
+                        elements.massRange.max = Math.max(500, state.mass * 1.5);
+                        elements.massNumber.max = Math.max(500, state.mass * 1.5);
+                        syncInputs('mass', state.mass);
+                    }
+                }
+            });
+
+            // Step Buttons
+            document.querySelectorAll('.step-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const inputId = btn.dataset.input;
+                    const step = parseFloat(btn.dataset.step);
+                    const input = document.getElementById(inputId);
+                    if (input && !input.disabled) {
+                        const newVal = parseFloat(input.value) + step;
+                        const keyMap = {
+                            'massNumber': state.inputMode === 'mass' ? 'mass' : 'forceInput',
+                            'kNumber': 'k',
+                            'refKNumber': 'refK',
+                            'extNumber': 'extensionInput',
+                            'lNumber': 'totalLength',
+                            'aNumber': 'area',
+                            'l0Number': 'l0'
+                        };
+                        syncInputs(keyMap[inputId], newVal);
+                    }
+                });
+            });
+
+            // Interactive Graph
+            elements.graphCanvas.addEventListener('mousedown', (e) => {
+                state.isDraggingGraph = true;
+                handleGraphInteraction(e);
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (state.isDraggingGraph) handleGraphInteraction(e);
+            });
+            window.addEventListener('mouseup', () => {
+                state.isDraggingGraph = false;
+            });
+
+            elements.startMysteryMass.addEventListener('click', initMysteryMass);
+            elements.startLabQuest.addEventListener('click', initLabQuest);
+            elements.checkChallengeBtn.addEventListener('click', checkChallenge);
+            elements.onboardingNext.addEventListener('click', nextOnboardingStep);
+
+            elements.bgToggle.addEventListener('click', (e) => {
+                if (e.target.dataset.bg) {
+                    state.bg = e.target.dataset.bg;
+                    Array.from(elements.bgToggle.children).forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    update();
+                }
+            });
+        }
+
+        // --- Gamification Logic ---
+        function unlockAchievement(id, name, icon) {
+            if (state.achievements[id]) return;
+            state.achievements[id] = true;
+            localStorage.setItem('achievements', JSON.stringify(state.achievements));
+
+            document.getElementById('badgeName').textContent = name;
+            document.getElementById('badgeIcon').textContent = icon;
+            elements.achievementToast.classList.add('show');
+            setTimeout(() => elements.achievementToast.classList.remove('show'), 4000);
+        }
+
+        function initMysteryMass() {
+            const mysteryMass = (Math.random() * 20 + 1).toFixed(1);
+            state.challenge = {
+                type: 'mysteryMass',
+                value: parseFloat(mysteryMass)
+            };
+
+            state.mass = parseFloat(mysteryMass);
+            state.inputMode = 'mass';
+            state.hangingObject = 'none';
+            syncInputs('mass', state.mass);
+
+            elements.challengeCard.style.display = 'block';
+            elements.challengeText.innerHTML = "A mystery object has been hung! Observe the extension and spring constant, then <strong>guess the mass (kg)</strong>.";
+            elements.challengeInputRow.style.display = 'flex';
+            elements.challengeFeedback.textContent = "";
+            elements.challengeGuess.value = "";
+
+            // Hide mass inputs to make it a challenge
+            elements.massRange.parentElement.style.visibility = 'hidden';
+            elements.inputToggle.style.visibility = 'hidden';
+        }
+
+        function initLabQuest() {
+            state.challenge = {
+                type: 'labQuest',
+                target: 2000
+            };
+            elements.challengeCard.style.display = 'block';
+            elements.challengeText.textContent = "Engineer challenge: Adjust the Material and Area so the system can support 500kg with an Extension of EXACTLY 0.25m.";
+            elements.challengeInputRow.style.display = 'none';
+            elements.challengeFeedback.textContent = "Current Extension: " + state.extension.toFixed(3) + "m";
+
+            // Restore visibility
+            elements.massRange.parentElement.style.visibility = 'visible';
+            elements.inputToggle.style.visibility = 'visible';
+        }
+
+        function checkChallenge() {
+            if (!state.challenge) return;
+
+            if (state.challenge.type === 'mysteryMass') {
+                const guess = parseFloat(elements.challengeGuess.value);
+                const actual = state.challenge.value;
+                if (Math.abs(guess - actual) < 0.2) {
+                    elements.challengeFeedback.innerHTML = "✅ CORRECT! The mass was " + actual + "kg.";
+                    elements.challengeFeedback.style.color = "green";
+                    unlockAchievement('mystery_solved', 'Mystery Solver', '🔍');
+                    setTimeout(() => {
+                        elements.challengeCard.style.display = 'none';
+                        elements.massRange.parentElement.style.visibility = 'visible';
+                        elements.inputToggle.style.visibility = 'visible';
+                    }, 3000);
+                } else {
+                    elements.challengeFeedback.textContent = "❌ Try again! Check your math.";
+                    elements.challengeFeedback.style.color = "red";
+                }
+            }
+        }
+
+        // --- Onboarding Logic ---
+        let onboardingStep = 0;
+        const onboardingTour = [
+            { title: "Welcome!", text: "Let's learn Hooke's Law together. Click next to start the tour!" },
+            { title: "Dual Modes", text: "Switch between 'Hooke's Law' (Springs) and 'Modulus' (Wires) here.", target: 'modeToggle' },
+            { title: "What to Calculate?", text: "Choose what you want to solve for. The simulation updates everything else automatically!", target: 'calculationToggle' },
+            { title: "Object Gallery", text: "Try hanging different objects like an apple or a car!", target: 'objectGallery' },
+            { title: "The Solution", text: "Watch the step-by-step math update in real-time as you move sliders.", target: 'calculationSteps' }
+        ];
+
+        function startOnboarding() {
+            if (localStorage.getItem('onboardingComplete')) return;
+            onboardingStep = 0;
+            elements.onboardingOverlay.style.display = 'flex';
+            updateOnboarding();
+        }
+
+        function nextOnboardingStep() {
+            onboardingStep++;
+            if (onboardingStep >= onboardingTour.length) {
+                elements.onboardingOverlay.style.display = 'none';
+                localStorage.setItem('onboardingComplete', 'true');
+                return;
+            }
+            updateOnboarding();
+        }
+
+        function updateOnboarding() {
+            const step = onboardingTour[onboardingStep];
+            elements.onboardingTitle.textContent = step.title;
+            elements.onboardingText.textContent = step.text;
+
+            // Highlight target if exists
+            document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+            if (step.target) {
+                const target = document.getElementById(step.target);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Basic highlight effect
+                    target.style.outline = "4px solid var(--primary-color)";
+                    target.style.outlineOffset = "4px";
+                    setTimeout(() => {
+                         target.style.outline = "none";
+                    }, 2000);
+                }
+            }
+        }
+
+        function handleGraphInteraction(e) {
+            const canvas = elements.graphCanvas;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const margin = 40;
+            const plotW = canvas.width - margin * 1.5;
+            const plotH = canvas.height - margin * 1.5;
+
+            let maxX, maxY;
+            if (state.simulationMode === 'spring') {
+                maxX = Math.max(10, state.extension * 1.5);
+                maxY = Math.max(1000, state.force * 1.5);
+            } else {
+                maxX = 2.0;
+                maxY = 5e7;
+            }
+
+            const pctX = Math.max(0, Math.min(1, (x - margin) / plotW));
+            const targetXVal = pctX * maxX;
+
+            if (state.simulationMode === 'spring') {
+                // F = k * deltaL. If we drag X (deltaL), we update deltaL if it's the target, or update force if deltaL is input.
+                // To keep it simple and intuitive: dragging graph ALWAYS updates the extension if possible, or force.
+                if (state.calculationTarget === 'extension') {
+                    // Update force to match this extension
+                    const neededForce = targetXVal * state.k;
+                    if (state.inputMode === 'mass') {
+                        syncInputs('mass', neededForce / state.g);
+                    } else {
+                        syncInputs('forceInput', neededForce);
+                    }
+                } else {
+                    syncInputs('extensionInput', targetXVal);
+                }
+            } else {
+                // Stress/Strain
+                const targetStrain = targetXVal;
+                const targetExt = targetStrain * state.l0;
+                if (state.calculationTarget === 'strain') {
+                     // Need to update force
+                     const neededForce = (targetExt * state.k);
+                     if (state.inputMode === 'mass') {
+                        syncInputs('mass', neededForce / state.g);
+                    } else {
+                        syncInputs('forceInput', neededForce);
+                    }
+                } else {
+                    syncInputs('extensionInput', targetExt);
+                }
+            }
         }
 
         function formatScientific(num, decimals = 2, html = true) {
             if (!Number.isFinite(num)) return num.toString();
             if (num === 0) return "0";
+
+            if (state.notation === 'standard') {
+                if (Math.abs(num) < 0.0001 && num !== 0) return num.toExponential(decimals);
+                return num.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            }
+
             if (Math.abs(num) >= 0.01 && Math.abs(num) < 100000) {
                 return num.toFixed(decimals);
             }
@@ -679,27 +1273,27 @@
                     state.totalLength = state.l0 + state.extensionInput;
                 }
                 state.force = state.k * state.extensionInput;
-                state.mass = state.force / G;
+                state.mass = state.force / state.g;
                 state.forceInput = state.force;
             } else if (target === 'extension') {
                 // Extension is calculated: ΔL = F / k
                 if (state.inputMode === 'mass') {
-                    state.force = state.mass * G;
+                    state.force = state.mass * state.g;
                     state.forceInput = state.force;
                 } else {
                     state.force = state.forceInput;
-                    state.mass = state.force / G;
+                    state.mass = state.force / state.g;
                 }
                 state.extensionInput = state.k !== 0 ? state.force / state.k : 0;
                 state.totalLength = state.l0 + state.extensionInput;
             } else if (target === 'stress') {
                 // Stress target often implies Force/Extension logic plus area
                 if (state.inputMode === 'mass') {
-                    state.force = state.mass * G;
+                    state.force = state.mass * state.g;
                     state.forceInput = state.force;
                 } else {
                     state.force = state.forceInput;
-                    state.mass = state.force / G;
+                    state.mass = state.force / state.g;
                 }
                 state.extensionInput = state.k !== 0 ? state.force / state.k : 0;
                 state.totalLength = state.l0 + state.extensionInput;
@@ -711,16 +1305,16 @@
                     state.totalLength = state.l0 + state.extensionInput;
                 }
                 state.force = state.k * state.extensionInput;
-                state.mass = state.force / G;
+                state.mass = state.force / state.g;
                 state.forceInput = state.force;
             } else if (target === 'young' || target === 'k') {
                 // For k or Young's target, we calculate k from F and ΔL
                 if (state.inputMode === 'mass') {
-                    state.force = state.mass * G;
+                    state.force = state.mass * state.g;
                     state.forceInput = state.force;
                 } else {
                     state.force = state.forceInput;
-                    state.mass = state.force / G;
+                    state.mass = state.force / state.g;
                 }
                 if (key === 'totalLength') {
                     state.extensionInput = state.totalLength - state.l0;
@@ -737,6 +1331,10 @@
             updateEl(elements.kRange, state.k);
             updateEl(elements.kNumber, state.k);
             elements.kVal.innerHTML = formatScientific(state.k, 2);
+
+            updateEl(elements.refKRange, state.refK);
+            updateEl(elements.refKNumber, state.refK);
+            if (elements.refKVal) elements.refKVal.innerHTML = formatScientific(state.refK, 2);
 
             updateEl(elements.extRange, state.extensionInput);
             updateEl(elements.extNumber, state.extensionInput);
@@ -760,13 +1358,27 @@
         function calculatePhysics() {
             // F = m * g or F = forceInput
             if (state.inputMode === 'mass') {
-                state.force = state.mass * G;
+                state.force = state.mass * state.g;
             } else {
                 state.force = state.forceInput;
             }
 
-            // Extension: e = F / k
-            state.extension = state.k !== 0 ? state.force / state.k : 0;
+            // Effective K based on configuration
+            let effectiveK = state.k;
+            if (state.simulationMode === 'spring') {
+                if (state.springConfig === 'parallel') {
+                    effectiveK = state.k * 2;
+                } else if (state.springConfig === 'series') {
+                    effectiveK = state.k / 2;
+                }
+            }
+
+            // Extension: e = F / keff
+            state.extension = effectiveK !== 0 ? state.force / effectiveK : 0;
+
+            if (state.springConfig === 'compare') {
+                state.refExtension = state.refK !== 0 ? state.force / state.refK : 0;
+            }
 
             // Stress: sigma = F / A
             state.stress = state.area !== 0 ? state.force / state.area : 0;
@@ -781,7 +1393,63 @@
             state.epe = 0.5 * state.force * state.extension;
         }
 
+        // --- Audio Logic ---
+        let audioCtx = null;
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSnap() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        let lastTensionSound = 0;
+        function playCreak() {
+            if (Date.now() - lastTensionSound < 200) return;
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(200 + Math.random() * 100, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+            lastTensionSound = Date.now();
+        }
+
         function updateDashboard() {
+            if (state.challenge && state.challenge.type === 'labQuest') {
+                elements.challengeFeedback.textContent = "Current Extension: " + state.extension.toFixed(3) + "m";
+                if (Math.abs(state.extension - 0.25) < 0.005 && state.mass === 500) {
+                    elements.challengeFeedback.innerHTML = "✅ QUEST COMPLETE! Great engineering!";
+                    elements.challengeFeedback.style.color = "green";
+                    unlockAchievement('lab_quest', 'Master Engineer', '🛠️');
+                    state.challenge = null;
+                    setTimeout(() => elements.challengeCard.style.display = 'none', 5000);
+                }
+            }
+
+            if (state.strain > 1.0) {
+                if (!state.achievements['limit_breaker']) playSnap();
+                unlockAchievement('limit_breaker', 'Limit Breaker', '💥');
+            } else if (state.strain > 0.8) {
+                playCreak();
+            }
             const results = [
                 elements.forceRes, elements.extRes, elements.stressRes,
                 elements.strainRes, elements.youngRes, elements.epeRes
@@ -819,9 +1487,42 @@
             const width = canvas.width;
             const height = canvas.height;
 
+            const startX = width / 2;
+
             ctx.clearRect(0, 0, width, height);
 
-            const startX = width / 2;
+            // Draw Background
+            if (state.bg === 'grid') {
+                ctx.strokeStyle = '#f1f5f9';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < width; i += 20) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke();
+                }
+                for (let i = 0; i < height; i += 20) {
+                    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke();
+                }
+            } else if (state.bg === 'mars') {
+                ctx.fillStyle = '#7c2d12';
+                ctx.fillRect(0, height - 100, width, 100);
+                // Cracks/Rocks
+                ctx.strokeStyle = '#451a03';
+                ctx.beginPath(); ctx.moveTo(50, height-20); ctx.lineTo(150, height-40); ctx.stroke();
+                ctx.fillStyle = '#9a3412';
+                ctx.beginPath(); ctx.arc(300, height-60, 20, 0, Math.PI*2); ctx.fill();
+                // Sky
+                const skyGrad = ctx.createLinearGradient(0,0,0,height-100);
+                skyGrad.addColorStop(0, '#f97316');
+                skyGrad.addColorStop(1, '#ffedd5');
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0,0,width,height-100);
+            } else {
+                // Lab (default)
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = '#e2e8f0';
+                ctx.fillRect(0, height - 20, width, 20);
+            }
+
             const startY = 50;
 
             const baseLength = state.l0 * 40; // Scale 1m = 40px
@@ -900,15 +1601,55 @@
                 const springWidth = 30;
                 ctx.strokeStyle = isBeyondLimit ? '#ef4444' : '#334155';
                 ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
-                for (let i = 0; i < coils; i++) {
-                    const y = startY + (i + 0.5) * (currentLength / coils);
-                    const x = startX + (i % 2 === 0 ? springWidth : -springWidth);
-                    ctx.lineTo(x, y);
+
+                if (state.springConfig === 'single') {
+                    drawSpring(ctx, startX, startY, currentLength, coils, springWidth);
+                    drawWeight(ctx, startX, startY + currentLength, visualState.mass);
+                } else if (state.springConfig === 'parallel') {
+                    drawSpring(ctx, startX - 25, startY, currentLength, coils, 20);
+                    drawSpring(ctx, startX + 25, startY, currentLength, coils, 20);
+                    // Connection bars
+                    ctx.beginPath();
+                    ctx.moveTo(startX - 25, startY); ctx.lineTo(startX + 25, startY);
+                    ctx.moveTo(startX - 25, startY + currentLength); ctx.lineTo(startX + 25, startY + currentLength);
+                    ctx.stroke();
+                    drawWeight(ctx, startX, startY + currentLength, visualState.mass);
+                } else if (state.springConfig === 'series') {
+                    drawSpring(ctx, startX, startY, currentLength / 2, coils, springWidth);
+                    drawSpring(ctx, startX, startY + currentLength / 2, currentLength / 2, coils, springWidth);
+                    // Mid-joint
+                    ctx.fillStyle = '#475569';
+                    ctx.beginPath();
+                    ctx.arc(startX, startY + currentLength/2, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    drawWeight(ctx, startX, startY + currentLength, visualState.mass);
+                } else if (state.springConfig === 'compare') {
+                    // Two independent systems
+                    const leftX = startX - 60;
+                    const rightX = startX + 60;
+
+                    const refCurrentLength = (state.l0 + visualState.refExtension) * 40;
+
+                    // Reference (Left)
+                    ctx.save();
+                    ctx.strokeStyle = '#94a3b8';
+                    drawSpring(ctx, leftX, startY, refCurrentLength, coils, 20);
+                    drawWeight(ctx, leftX, startY + refCurrentLength, visualState.mass);
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`Ref: ${state.refK} N/m`, leftX, startY - 5);
+                    ctx.restore();
+
+                    // Active (Right)
+                    drawSpring(ctx, rightX, startY, currentLength, coils, 20);
+                    drawWeight(ctx, rightX, startY + currentLength, visualState.mass);
+                    ctx.fillStyle = varColor('--primary-color');
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`Active: ${state.k} N/m`, rightX, startY - 5);
+
+                    return; // Comparison mode handles its own weight drawing
                 }
-                ctx.lineTo(startX, startY + currentLength);
-                ctx.stroke();
             } else {
                 // Wire mode
                 const wireWidth = Math.max(1, Math.sqrt(state.area) * 1000); // Visual thickness
@@ -924,25 +1665,8 @@
                 ctx.strokeRect(startX - wireWidth/2, startY, wireWidth, currentLength);
             }
 
-            // Draw Weight
-            const weightY = startY + currentLength;
-            const weightSize = 25 + Math.sqrt(Math.max(0, visualState.mass)) * 3;
-
-            const weightGrad = ctx.createRadialGradient(startX, weightY + weightSize/2, 5, startX, weightY + weightSize/2, weightSize);
-            weightGrad.addColorStop(0, '#475569');
-            weightGrad.addColorStop(1, '#1e293b');
-
-            ctx.fillStyle = weightGrad;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
-            ctx.fillRect(startX - weightSize / 2, weightY, weightSize, weightSize);
-            ctx.shadowBlur = 0;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 11px Arial';
-            ctx.textAlign = 'center';
-            const weightLabel = state.inputMode === 'mass' ? `${visualState.mass.toFixed(1)}kg` : `${state.force.toFixed(1)}N`;
-            ctx.fillText(weightLabel, startX, weightY + weightSize / 2 + 4);
+            // Draw Weight / Object (for non-comparison modes)
+            drawWeight(ctx, startX, startY + currentLength, visualState.mass);
 
             // Draw Extension Indicator & Magnified View
             if (visualState.extension > 0) {
@@ -1011,6 +1735,18 @@
                     ctx.fillText(`ΔL: ${state.extension.toFixed(3)}m`, indicatorX + 15, (startY + baseLength + weightY) / 2);
                 }
             }
+        }
+
+        function drawSpring(ctx, x, y, len, coils, width) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            for (let i = 0; i < coils; i++) {
+                const stepY = y + (i + 0.5) * (len / coils);
+                const stepX = x + (i % 2 === 0 ? width : -width);
+                ctx.lineTo(stepX, stepY);
+            }
+            ctx.lineTo(x, y + len);
+            ctx.stroke();
         }
 
         function drawGraph() {
@@ -1087,6 +1823,66 @@
             ctx.fill();
         }
 
+        function drawWeight(ctx, startX, weightY, visualMass) {
+            const weightSize = 25 + Math.sqrt(Math.max(0, visualMass)) * 3;
+
+            if (state.hangingObject === 'apple') {
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(startX, weightY + 15, 15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#4ade80';
+                ctx.fillRect(startX - 2, weightY, 4, 10);
+            } else if (state.hangingObject === 'feather') {
+                ctx.fillStyle = '#f8fafc';
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.beginPath();
+                ctx.ellipse(startX, weightY + 10, 5, 20, Math.PI/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            } else if (state.hangingObject === 'bowling') {
+                ctx.fillStyle = '#1e293b';
+                ctx.beginPath();
+                ctx.arc(startX, weightY + 20, 20, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#f1f5f9';
+                ctx.beginPath();
+                ctx.arc(startX - 5, weightY + 10, 3, 0, Math.PI * 2);
+                ctx.arc(startX + 5, weightY + 10, 3, 0, Math.PI * 2);
+                ctx.arc(startX, weightY + 20, 3, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (state.hangingObject === 'car') {
+                ctx.fillStyle = '#2563eb';
+                ctx.fillRect(startX - 40, weightY, 80, 30);
+                ctx.fillStyle = '#1e293b';
+                ctx.beginPath();
+                ctx.arc(startX - 25, weightY + 30, 8, 0, Math.PI * 2);
+                ctx.arc(startX + 25, weightY + 30, 8, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                const weightGrad = ctx.createRadialGradient(startX, weightY + weightSize/2, 5, startX, weightY + weightSize/2, weightSize);
+                weightGrad.addColorStop(0, '#475569');
+                weightGrad.addColorStop(1, '#1e293b');
+
+                ctx.fillStyle = weightGrad;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(startX - weightSize / 2, weightY, weightSize, weightSize);
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.fillStyle = state.hangingObject === 'none' ? '#ffffff' : '#1e293b';
+            if (state.hangingObject !== 'none') ctx.fillStyle = '#000';
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'center';
+            const weightLabel = state.inputMode === 'mass' ? `${visualMass.toFixed(1)}kg` : `${state.force.toFixed(1)}N`;
+            ctx.fillText(weightLabel, startX, weightY + (state.hangingObject === 'none' ? weightSize/2 + 4 : -5));
+        }
+
+        function varColor(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+
         function animate() {
             // Damped Harmonic Oscillation for Visual Extension
             const k_vis = 0.15; // spring constant for visual smoothing
@@ -1096,6 +1892,11 @@
             visualState.velocity += force_vis;
             visualState.velocity *= d_vis;
             visualState.extension += visualState.velocity;
+
+            const refForce_vis = (state.refExtension - visualState.refExtension) * k_vis;
+            visualState.refVelocity += refForce_vis;
+            visualState.refVelocity *= d_vis;
+            visualState.refExtension += visualState.refVelocity;
 
             // Smoothly interpolate mass
             visualState.mass += (state.mass - visualState.mass) * 0.15;
@@ -1118,32 +1919,44 @@
             if (!item) return;
 
             let content = '';
+            let effectiveK = state.k;
+            let kLabel = "k";
+            if (state.simulationMode === 'spring') {
+                if (state.springConfig === 'parallel') {
+                    effectiveK = state.k * 2;
+                    kLabel = "2k (Parallel)";
+                } else if (state.springConfig === 'series') {
+                    effectiveK = state.k / 2;
+                    kLabel = "k/2 (Series)";
+                }
+            }
+
             if (calc === 'force') {
                 content = `
                     <strong>Derivation for Force (F):</strong>
-                    <div class="formula-row">F = k &times; &Delta;L</div>
-                    <div class="formula-row">F = ${formatScientific(state.k, 2)} N/m &times; ${formatScientific(state.extensionInput, 4)} m</div>
+                    <div class="formula-row">F = ${kLabel} &times; &Delta;L</div>
+                    <div class="formula-row">F = ${formatScientific(effectiveK, 2)} N/m &times; ${formatScientific(state.extensionInput, 4)} m</div>
                     <div class="formula-row">F = <strong>${formatScientific(state.force, 2)} N</strong></div>
                 `;
             } else if (calc === 'k') {
                 content = `
                     <strong>Derivation for Spring Constant (k):</strong>
                     <div class="formula-row">
-                        k = <div class="fraction"><div class="numerator">F</div><div class="denominator">&Delta;L</div></div>
+                        ${kLabel} = <div class="fraction"><div class="numerator">F</div><div class="denominator">&Delta;L</div></div>
                     </div>
                     <div class="formula-row">
-                        k = <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(state.extensionInput, 4)} m</div></div>
+                        ${kLabel} = <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(state.extensionInput, 4)} m</div></div>
                     </div>
-                    <div class="formula-row">k = <strong>${formatScientific(state.k, 2)} N/m</strong></div>
+                    <div class="formula-row">${kLabel} = <strong>${formatScientific(effectiveK, 2)} N/m</strong></div>
                 `;
             } else if (calc === 'extension') {
                 content = `
                     <strong>Derivation for Extension (&Delta;L):</strong>
                     <div class="formula-row">
-                        &Delta;L = <div class="fraction"><div class="numerator">F</div><div class="denominator">k</div></div>
+                        &Delta;L = <div class="fraction"><div class="numerator">F</div><div class="denominator">${kLabel}</div></div>
                     </div>
                     <div class="formula-row">
-                        &Delta;L = <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(state.k, 2)} N/m</div></div>
+                        &Delta;L = <div class="fraction"><div class="numerator">${formatScientific(state.force, 2)} N</div><div class="denominator">${formatScientific(effectiveK, 2)} N/m</div></div>
                     </div>
                     <div class="formula-row">&Delta;L = <strong>${formatScientific(state.extension, 4)} m</strong></div>
                 `;
@@ -1196,6 +2009,7 @@
         function init() {
             setupEventListeners();
             updateCalculatedStyles();
+            startOnboarding();
 
             // Set initial mode class
             if (state.simulationMode === 'spring') {
