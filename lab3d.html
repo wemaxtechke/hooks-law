@@ -444,6 +444,8 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/OrbitControls.js';
 
+        const TABLE_HEIGHT = 1.0;
+
         // --- Physics State ---
         let state = {
             g: 9.8,
@@ -508,7 +510,7 @@
         container.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 1.5, 0);
+        controls.target.set(0, 1.5 + TABLE_HEIGHT, 0);
         controls.update();
 
         // Lights
@@ -529,22 +531,67 @@
         const gridHelper = new THREE.GridHelper(20, 20, 0x475569, 0x334155);
         scene.add(gridHelper);
 
+        // Lab Furniture (Table and Walls)
+        const labFurniture = new THREE.Group();
+        scene.add(labFurniture);
+
+        // Table
+        const tableTopGeo = new THREE.BoxGeometry(5, 0.1, 3);
+        const tableMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
+        const tableTop = new THREE.Mesh(tableTopGeo, tableMat);
+        tableTop.position.y = TABLE_HEIGHT;
+        tableTop.castShadow = true;
+        tableTop.receiveShadow = true;
+        labFurniture.add(tableTop);
+
+        const legGeo = new THREE.CylinderGeometry(0.05, 0.05, TABLE_HEIGHT);
+        const legOffsets = [
+            { x: -2.4, z: -1.4 }, { x: 2.4, z: -1.4 },
+            { x: -2.4, z: 1.4 }, { x: 2.4, z: 1.4 }
+        ];
+        legOffsets.forEach(offset => {
+            const leg = new THREE.Mesh(legGeo, tableMat);
+            leg.position.set(offset.x, TABLE_HEIGHT / 2, offset.z);
+            leg.castShadow = true;
+            leg.receiveShadow = true;
+            labFurniture.add(leg);
+        });
+
+        // Walls
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0 });
+        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMat);
+        backWall.position.set(0, 5, -10);
+        backWall.receiveShadow = true;
+        labFurniture.add(backWall);
+
+        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMat);
+        leftWall.position.set(-10, 5, 0);
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.receiveShadow = true;
+        labFurniture.add(leftWall);
+
+        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMat);
+        rightWall.position.set(10, 5, 0);
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.receiveShadow = true;
+        labFurniture.add(rightWall);
+
         // Support Structure
         const metalMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
         const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 4), metalMat);
-        post.position.set(-1.5, 2, 0);
+        post.position.set(-1.5, 2 + TABLE_HEIGHT, 0);
         post.castShadow = true;
         scene.add(post);
 
         const hPost = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3), metalMat);
         hPost.rotation.z = Math.PI / 2;
-        hPost.position.set(0, 4, 0);
+        hPost.position.set(0, 4 + TABLE_HEIGHT, 0);
         hPost.castShadow = true;
         scene.add(hPost);
 
         // --- Interactive Objects ---
         const springGroup = new THREE.Group();
-        springGroup.position.set(0, 4, 0);
+        springGroup.position.set(0, 4 + TABLE_HEIGHT, 0);
         springGroup.rotation.x = Math.PI;
         scene.add(springGroup);
 
@@ -579,7 +626,7 @@
 
         // Reference Spring Group (for Compare mode)
         const refSpringGroup = new THREE.Group();
-        refSpringGroup.position.set(1.5, 4, 0);
+        refSpringGroup.position.set(1.5, 4 + TABLE_HEIGHT, 0);
         refSpringGroup.rotation.x = Math.PI;
         scene.add(refSpringGroup);
         refSpringGroup.visible = false;
@@ -1051,16 +1098,19 @@
                 scene.fog = new THREE.Fog(0x7c2d12, 5, 20);
                 floor.material.color.setHex(0x9a3412);
                 state.g = 3.7;
+                labFurniture.visible = false;
             } else if (state.env === 'grid') {
                 scene.background = new THREE.Color(0x0f172a);
                 scene.fog = null;
                 floor.material.color.setHex(0x1e293b);
                 state.g = 9.8;
+                labFurniture.visible = false;
             } else {
                 scene.background = new THREE.Color(0xf1f5f9);
                 scene.fog = null;
                 floor.material.color.setHex(0xe2e8f0);
                 state.g = 9.8;
+                labFurniture.visible = true;
             }
             calculatePhysics();
             updateUI();
