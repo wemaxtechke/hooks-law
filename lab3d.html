@@ -11,6 +11,15 @@
             --card-bg: #ffffff;
             --text-color: #1e293b;
             --border-color: #e2e8f0;
+            --accent-color: #3b82f6;
+            --muted-text: #64748b;
+            --input-bg: #ffffff;
+            --dashboard-item-bg: #f1f5f9;
+            --calculated-bg: #f0f9ff;
+            --calculated-border: #7dd3fc;
+            --toggle-bg: #e2e8f0;
+            --toggle-btn-hover: #cbd5e1;
+            --toggle-btn-active: #94a3b8;
             --shadow-color: rgba(0,0,0,0.1);
         }
 
@@ -20,6 +29,15 @@
             --card-bg: #1e293b;
             --text-color: #f1f5f9;
             --border-color: #334155;
+            --accent-color: #3b82f6;
+            --muted-text: #94a3b8;
+            --input-bg: #334155;
+            --dashboard-item-bg: #334155;
+            --calculated-bg: #1e3a8a;
+            --calculated-border: #2563eb;
+            --toggle-bg: #334155;
+            --toggle-btn-hover: #475569;
+            --toggle-btn-active: #1e293b;
             --shadow-color: rgba(0,0,0,0.3);
         }
 
@@ -41,6 +59,7 @@
             text-align: center;
             box-shadow: 0 2px 4px var(--shadow-color);
             z-index: 10;
+            position: relative;
         }
 
         .nav-links {
@@ -71,6 +90,7 @@
             flex: 1;
             position: relative;
             background: #000;
+            overflow: hidden;
         }
 
         .controls-overlay {
@@ -78,11 +98,14 @@
             top: 20px;
             left: 20px;
             background: var(--card-bg);
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
             box-shadow: 0 4px 6px -1px var(--shadow-color);
-            width: 250px;
+            width: 320px;
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+            z-index: 20;
         }
 
         .control-group {
@@ -91,13 +114,113 @@
 
         .control-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+        }
+
+        .toggle-group {
+            display: flex;
+            background: var(--toggle-bg);
+            padding: 0.2rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            border: none;
+            background: none;
+            padding: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            color: var(--muted-text);
+        }
+
+        .toggle-btn.active {
+            background: var(--card-bg);
+            color: var(--primary-color);
+            box-shadow: 0 1px 3px var(--shadow-color);
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
 
         input[type="range"] {
-            width: 100%;
+            flex: 1;
+        }
+
+        input[type="number"] {
+            width: 70px;
+            padding: 0.3rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .calculated-input {
+            background-color: var(--calculated-bg) !important;
+            border-color: var(--calculated-border) !important;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .result-item {
+            background: var(--dashboard-item-bg);
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--muted-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .result-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.4rem;
+        }
+
+        .preset-btn {
+            padding: 0.3rem;
+            font-size: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .preset-btn.active {
+            background: var(--primary-color);
+            color: white;
         }
 
         .instruction {
@@ -111,6 +234,7 @@
             border-radius: 20px;
             font-size: 0.8rem;
             pointer-events: none;
+            z-index: 5;
         }
 
         .theme-toggle {
@@ -136,9 +260,31 @@
             background: rgba(255,255,255,0.3);
             transform: scale(1.05);
         }
+
+        /* Mode-based visibility */
+        .mode-wire-only { display: block; }
+        body.mode-hooke .mode-wire-only { display: none; }
+
+        .mode-compare-only { display: none; }
+        body.mode-compare .mode-compare-only { display: block; }
+
+        #corsWarning {
+            background: #fffbeb;
+            border-bottom: 1px solid #fde68a;
+            color: #92400e;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            display: none;
+            z-index: 100;
+        }
+        [data-theme='dark'] #corsWarning { background: #451a03; border-color: #92400e; color: #fef3c7; }
     </style>
 </head>
 <body>
+    <div id="corsWarning">
+        ⚠️ <b>Running via file:// protocol.</b> 3D features might be limited. Use <b>launch_lab.bat</b> for the full experience.
+    </div>
     <header>
         <button id="themeToggle" class="theme-toggle" title="Toggle Dark Mode">🌓</button>
         <h1>3D Physics Lab</h1>
@@ -151,18 +297,128 @@
 
     <div id="canvas-container">
         <div class="controls-overlay">
-            <h3 style="margin-top: 0;">Lab Controls</h3>
             <div class="control-group">
-                <label>Spring Extension: <span id="extVal">0.5</span>m</label>
-                <input type="range" id="extRange" min="0.1" max="2.0" step="0.01" value="0.5">
+                <label>Simulation Mode</label>
+                <div class="toggle-group" id="modeToggle">
+                    <button class="toggle-btn active" data-mode="spring">Hooke's Law</button>
+                    <button class="toggle-btn" data-mode="wire">Elasticity</button>
+                </div>
             </div>
+
             <div class="control-group">
-                <label>Spring Coils</label>
-                <input type="range" id="coilsRange" min="5" max="30" step="1" value="15">
+                <label>Calculation Target</label>
+                <div class="toggle-group" id="calculationToggle">
+                    <button class="toggle-btn active" data-calc="force">Force</button>
+                    <button class="toggle-btn" data-calc="extension">Ext.</button>
+                    <button class="toggle-btn" data-calc="k">k / E</button>
+                </div>
             </div>
-            <p style="font-size: 0.8rem; color: var(--muted-text);">Interact with the scene to explore the 3D lab setup.</p>
+
+            <div class="control-group">
+                <label>Object Variant</label>
+                <div class="preset-grid" id="objectGallery">
+                    <button class="preset-btn active" data-object="none">None</button>
+                    <button class="preset-btn" data-object="apple">Apple</button>
+                    <button class="preset-btn" data-object="bowling">Bowl</button>
+                    <button class="preset-btn" data-object="car">Car</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label id="inputLabel">Input: Mass (kg)</label>
+                <div class="input-row">
+                    <input type="range" id="massRange" min="0" max="500" step="0.1" value="5.0">
+                    <input type="number" id="massNumber" min="0" max="500" step="0.1" value="5.0">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Extension (ΔL): <span id="extVal">0.05</span> m</label>
+                <div class="input-row">
+                    <input type="range" id="extRange" min="0" max="10" step="0.001" value="0.05">
+                    <input type="number" id="extNumber" min="0" max="10" step="0.001" value="0.05">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Total Length (L): <span id="lVal">2.05</span> m</label>
+                <div class="input-row">
+                    <input type="range" id="lRange" min="0.1" max="20" step="0.01" value="2.05">
+                    <input type="number" id="lNumber" min="0.1" max="20" step="0.01" value="2.05">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Spring Constant (k): <span id="kVal">100</span> N/m</label>
+                <div class="input-row">
+                    <input type="range" id="kRange" min="0.1" max="5000" step="0.1" value="100">
+                    <input type="number" id="kNumber" min="0.1" max="5000" step="0.1" value="100">
+                </div>
+            </div>
+
+            <div class="control-group mode-compare-only" id="refKGroup">
+                <label>Ref. Spring Constant: <span id="refKVal">200</span> N/m</label>
+                <div class="input-row">
+                    <input type="range" id="refKRange" min="0.1" max="5000" step="0.1" value="200">
+                    <input type="number" id="refKNumber" min="0.1" max="5000" step="0.1" value="200">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Original Length (L₀): <span id="l0Val">2.0</span> m</label>
+                <div class="input-row">
+                    <input type="range" id="l0Range" min="0.1" max="10" step="0.01" value="2.0">
+                    <input type="number" id="l0Number" min="0.1" max="10" step="0.01" value="2.0">
+                </div>
+            </div>
+
+            <div class="control-group mode-wire-only">
+                <label>Area (A): <span id="aVal">0.0010</span> m²</label>
+                <div class="input-row">
+                    <input type="range" id="aRange" min="1e-6" max="0.01" step="1e-6" value="0.0010">
+                    <input type="number" id="aNumber" min="1e-6" max="0.01" step="1e-6" value="0.0010">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Environment</label>
+                <div class="toggle-group" id="envToggle">
+                    <button class="toggle-btn active" data-env="lab">Lab</button>
+                    <button class="toggle-btn" data-env="grid">Grid</button>
+                    <button class="toggle-btn" data-env="mars">Mars</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Spring Config</label>
+                <div class="toggle-group" id="configToggle">
+                    <button class="toggle-btn active" data-config="single">Single</button>
+                    <button class="toggle-btn" data-config="parallel">Parallel</button>
+                    <button class="toggle-btn" data-config="series">Series</button>
+                    <button class="toggle-btn" data-config="compare">Compare</button>
+                </div>
+            </div>
+
+            <div class="dashboard">
+                <div class="result-item">
+                    <div class="result-label">Force</div>
+                    <div class="result-value"><span id="forceRes">0</span> N</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Ext.</div>
+                    <div class="result-value"><span id="extRes">0</span> m</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Energy</div>
+                    <div class="result-value"><span id="epeRes">0</span> J</div>
+                </div>
+                <div class="result-item mode-wire-only">
+                    <div class="result-label">Stress</div>
+                    <div class="result-value"><span id="stressRes">0</span> Pa</div>
+                </div>
+            </div>
         </div>
-        <div class="instruction">Left click to Rotate | Right click to Pan | Scroll to Zoom</div>
+        <div class="instruction">Left click: Rotate | Right click: Pan | Scroll: Zoom | <b>Drag Weight to stretch</b></div>
     </div>
 
     <script type="importmap">
@@ -178,15 +434,46 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/OrbitControls.js';
 
-        // Helix Curve Class
+        // --- Physics State ---
+        let state = {
+            g: 9.8,
+            mass: 5.0,
+            forceInput: 49,
+            inputMode: 'mass',
+            simulationMode: 'spring',
+            springConfig: 'single',
+            k: 100,
+            refK: 200,
+            area: 0.0010,
+            l0: 2.0,
+            totalLength: 2.05,
+            extensionInput: 0.05,
+            force: 0,
+            extension: 0,
+            refExtension: 0,
+            stress: 0,
+            strain: 0,
+            youngsModulus: 0,
+            epe: 0,
+            calculationTarget: 'force',
+            env: 'lab'
+        };
+
+        let visualState = {
+            extension: 0,
+            refExtension: 0,
+            velocity: 0,
+            refVelocity: 0
+        };
+
+        // --- Helix Curve ---
         class HelixCurve extends THREE.Curve {
-            constructor(radius = 0.5, height = 2, coils = 10) {
+            constructor(radius = 0.2, height = 2, coils = 15) {
                 super();
                 this.radius = radius;
                 this.height = height;
                 this.coils = coils;
             }
-
             getPoint(t, optionalTarget = new THREE.Vector3()) {
                 const angle = 2 * Math.PI * this.coils * t;
                 const tx = this.radius * Math.cos(angle);
@@ -196,13 +483,13 @@
             }
         }
 
-        // Scene setup
+        // --- Scene Setup ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1e293b);
 
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-        camera.position.set(2, 3, 5);
+        camera.position.set(3, 4, 6);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
@@ -211,172 +498,590 @@
         container.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 1, 0);
+        controls.target.set(0, 1.5, 0);
         controls.update();
 
         // Lights
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
         const dirLight = new THREE.DirectionalLight(0xffffff, 1);
         dirLight.position.set(5, 10, 5);
         dirLight.castShadow = true;
         scene.add(dirLight);
 
-        // Physics Lab Table
-        function createTable() {
-            const tableGroup = new THREE.Group();
-
-            // Table Top
-            const topGeo = new THREE.BoxGeometry(4, 0.2, 2.5);
-            const woodMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
-            const top = new THREE.Mesh(topGeo, woodMat);
-            top.position.y = 1;
-            top.receiveShadow = true;
-            top.castShadow = true;
-            tableGroup.add(top);
-
-            // Legs
-            const legGeo = new THREE.BoxGeometry(0.15, 1, 0.15);
-            const legMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f });
-
-            const legPositions = [
-                [1.8, 0.5, 1.1],
-                [-1.8, 0.5, 1.1],
-                [1.8, 0.5, -1.1],
-                [-1.8, 0.5, -1.1]
-            ];
-
-            legPositions.forEach(pos => {
-                const leg = new THREE.Mesh(legGeo, legMat);
-                leg.position.set(...pos);
-                leg.castShadow = true;
-                tableGroup.add(leg);
-            });
-
-            return tableGroup;
-        }
-
-        const table = createTable();
-        scene.add(table);
-
-        // Floor
+        // Lab Environment
         const floorGeo = new THREE.PlaneGeometry(20, 20);
         const floorMat = new THREE.MeshStandardMaterial({ color: 0x334155 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
-        floor.position.y = 0;
         floor.receiveShadow = true;
         scene.add(floor);
 
-        // Support Post for the spring
-        const postGeo = new THREE.CylinderGeometry(0.05, 0.05, 2.5);
+        const gridHelper = new THREE.GridHelper(20, 20, 0x475569, 0x334155);
+        scene.add(gridHelper);
+
+        // Support Structure
         const metalMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
-        const post = new THREE.Mesh(postGeo, metalMat);
-        post.position.set(-1.5, 2.25, 0);
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 4), metalMat);
+        post.position.set(-1.5, 2, 0);
         post.castShadow = true;
         scene.add(post);
 
-        const horizontalPostGeo = new THREE.CylinderGeometry(0.05, 0.05, 1);
-        const hPost = new THREE.Mesh(horizontalPostGeo, metalMat);
+        const hPost = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3), metalMat);
         hPost.rotation.z = Math.PI / 2;
-        hPost.position.set(-1, 3.5, 0);
+        hPost.position.set(0, 4, 0);
         hPost.castShadow = true;
         scene.add(hPost);
 
-        // Spring
-        let springMesh;
+        // --- Interactive Objects ---
         const springGroup = new THREE.Group();
-        springGroup.position.set(-0.5, 3.5, 0);
-        springGroup.rotation.x = Math.PI; // Hang downwards
+        springGroup.position.set(0, 4, 0);
+        springGroup.rotation.x = Math.PI;
         scene.add(springGroup);
 
-        function updateSpring(height, coils) {
-            if (springMesh) {
-                springGroup.remove(springMesh);
-                springMesh.geometry.dispose();
+        let springs = []; // Array of { mesh, curve }
+        const weightGroup = new THREE.Group();
+        weightGroup.name = "weightGroup";
+        springGroup.add(weightGroup);
+
+        // Weight variants
+        const boxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const appleGeo = new THREE.SphereGeometry(0.25, 16, 16);
+        const bowlGeo = new THREE.SphereGeometry(0.4, 32, 32);
+        const carGeo = new THREE.BoxGeometry(1.2, 0.5, 0.6);
+
+        const weightMat = new THREE.MeshStandardMaterial({ color: 0x2563eb });
+        const weight = new THREE.Mesh(boxGeo, weightMat);
+        weight.castShadow = true;
+        weight.name = "weight";
+        weightGroup.add(weight);
+
+        // Force Vector Arrows
+        const forceArrow = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 0), 1, 0xef4444);
+        const restoreArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 1, 0x10b981);
+        weightGroup.add(forceArrow);
+        weightGroup.add(restoreArrow);
+
+        // Ghost Spring (L0 marker)
+        const ghostGeo = new THREE.BoxGeometry(0.8, 0.02, 0.8);
+        const ghostMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.5 });
+        const ghostMarker = new THREE.Mesh(ghostGeo, ghostMat);
+        springGroup.add(ghostMarker);
+
+        // Reference Spring Group (for Compare mode)
+        const refSpringGroup = new THREE.Group();
+        refSpringGroup.position.set(1.5, 4, 0);
+        refSpringGroup.rotation.x = Math.PI;
+        scene.add(refSpringGroup);
+        refSpringGroup.visible = false;
+
+        const refWeight = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({ color: 0x64748b, transparent: true, opacity: 0.8 }));
+        refSpringGroup.add(refWeight);
+
+        // Materials cache to prevent memory leaks
+        const materials = {
+            spring: new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.7, roughness: 0.3 }),
+            refSpring: new THREE.MeshStandardMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.5 }),
+            wire: new THREE.MeshStandardMaterial({ color: 0xb87333, metalness: 0.5, roughness: 0.4 }),
+            weight: new THREE.MeshStandardMaterial({ color: 0x2563eb })
+        };
+
+        // Interaction Plane for dragging
+        const dragPlaneGeo = new THREE.PlaneGeometry(100, 100);
+        const dragPlane = new THREE.Mesh(dragPlaneGeo, new THREE.MeshBasicMaterial({ visible: false }));
+        scene.add(dragPlane);
+
+        let refSprings = [];
+        function updateVisuals() {
+            // Update Arrows
+            forceArrow.setLength(Math.max(0.1, state.force / 100));
+            restoreArrow.setLength(Math.max(0.1, state.force / 100));
+            forceArrow.position.y = -0.3;
+            restoreArrow.position.y = 0.3;
+            forceArrow.visible = state.force > 0;
+            restoreArrow.visible = state.force > 0;
+
+            ghostMarker.position.y = state.l0;
+
+            // Remove old springs
+            springs.forEach(s => {
+                springGroup.remove(s.mesh);
+                s.mesh.geometry.dispose();
+            });
+            springs = [];
+            refSprings.forEach(s => {
+                refSpringGroup.remove(s.mesh);
+                s.mesh.geometry.dispose();
+            });
+            refSprings = [];
+
+            const currentL = (state.l0 + visualState.extension);
+            const refCurrentL = (state.l0 + visualState.refExtension);
+            const coils = 15;
+
+            if (state.simulationMode === 'spring') {
+                if (state.springConfig === 'single') {
+                    addSpring(springGroup, springs, 0, 0.2, currentL, coils, materials.spring);
+                } else if (state.springConfig === 'parallel') {
+                    addSpring(springGroup, springs, -0.3, 0.15, currentL, coils, materials.spring);
+                    addSpring(springGroup, springs, 0.3, 0.15, currentL, coils, materials.spring);
+                } else if (state.springConfig === 'series') {
+                    addSpring(springGroup, springs, 0, 0.2, currentL / 2, coils, materials.spring, 0);
+                    addSpring(springGroup, springs, 0, 0.2, currentL / 2, coils, materials.spring, currentL / 2);
+                } else if (state.springConfig === 'compare') {
+                    addSpring(springGroup, springs, 0, 0.2, currentL, coils, materials.spring);
+                    addSpring(refSpringGroup, refSprings, 0, 0.2, refCurrentL, coils, materials.refSpring);
+                }
+            } else {
+                // Wire mode
+                const wireWidth = Math.max(0.01, Math.sqrt(state.area) * 2);
+                const wireGeo = new THREE.CylinderGeometry(wireWidth, wireWidth, currentL, 16);
+                const wireMesh = new THREE.Mesh(wireGeo, materials.wire);
+                wireMesh.position.y = currentL / 2;
+                wireMesh.castShadow = true;
+                springGroup.add(wireMesh);
+                springs.push({ mesh: wireMesh });
             }
 
-            const curve = new HelixCurve(0.2, height, coils);
-            const tubeGeo = new THREE.TubeGeometry(curve, 150, 0.01, 8, false);
-            const springMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.7, roughness: 0.3 });
-            springMesh = new THREE.Mesh(tubeGeo, springMat);
-            springMesh.castShadow = true;
-            springGroup.add(springMesh);
+            weightGroup.position.y = currentL + 0.25;
+            refWeight.position.y = refCurrentL + 0.25;
 
-            // Update weight position
-            weight.position.y = height + 0.2;
+            // Weight Geometry swap based on object type
+            if (state.hangingObject === 'apple') {
+                weight.geometry = appleGeo;
+                materials.weight.color.setHex(0xef4444);
+            } else if (state.hangingObject === 'bowling') {
+                weight.geometry = bowlGeo;
+                materials.weight.color.setHex(0x1e293b);
+            } else if (state.hangingObject === 'car') {
+                weight.geometry = carGeo;
+                materials.weight.color.setHex(0x2563eb);
+            } else {
+                weight.geometry = boxGeo;
+                materials.weight.color.setHex(0x2563eb);
+            }
+            weight.material = materials.weight;
+
+            const scale = 0.5 + Math.sqrt(state.mass) * 0.1;
+            weightGroup.scale.set(scale, scale, scale);
+            refWeight.scale.set(scale, scale, scale);
         }
 
-        // Hanging Weight
-        const weightGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-        const weightMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
-        const weight = new THREE.Mesh(weightGeo, weightMat);
-        weight.castShadow = true;
-        springGroup.add(weight);
+        function addSpring(group, list, x, radius, height, coils, mat, yOffset = 0) {
+            const curve = new HelixCurve(radius, height, coils);
+            const tubeGeo = new THREE.TubeGeometry(curve, 100, 0.02, 8, false);
+            const mesh = new THREE.Mesh(tubeGeo, mat);
+            mesh.position.x = x;
+            mesh.position.y = yOffset;
+            mesh.castShadow = true;
+            group.add(mesh);
+            list.push({ mesh, curve });
+        }
 
-        // Initial Spring
-        updateSpring(0.5, 15);
+        // --- Physics Logic ---
+        let audioCtx = null;
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
 
-        // Controls
-        const extRange = document.getElementById('extRange');
-        const extVal = document.getElementById('extVal');
-        const coilsRange = document.getElementById('coilsRange');
+        function playCreak() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(150 + Math.random() * 50, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
 
-        extRange.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            extVal.textContent = val.toFixed(2);
-            updateSpring(val, parseInt(coilsRange.value));
+        const elements = {
+            massRange: document.getElementById('massRange'),
+            massNumber: document.getElementById('massNumber'),
+            kRange: document.getElementById('kRange'),
+            kNumber: document.getElementById('kNumber'),
+            refKRange: document.getElementById('refKRange'),
+            refKNumber: document.getElementById('refKNumber'),
+            extRange: document.getElementById('extRange'),
+            extNumber: document.getElementById('extNumber'),
+            lRange: document.getElementById('lRange'),
+            lNumber: document.getElementById('lNumber'),
+            aRange: document.getElementById('aRange'),
+            aNumber: document.getElementById('aNumber'),
+            l0Range: document.getElementById('l0Range'),
+            l0Number: document.getElementById('l0Number'),
+            forceRes: document.getElementById('forceRes'),
+            extRes: document.getElementById('extRes'),
+            epeRes: document.getElementById('epeRes'),
+            stressRes: document.getElementById('stressRes'),
+            kVal: document.getElementById('kVal'),
+            refKVal: document.getElementById('refKVal'),
+            l0Val: document.getElementById('l0Val'),
+            aVal: document.getElementById('aVal'),
+            extVal: document.getElementById('extVal'),
+            lVal: document.getElementById('lVal'),
+            calculationToggle: document.getElementById('calculationToggle')
+        };
+
+        function updateCalculatedStyles() {
+            const allInputs = [
+                elements.massRange, elements.massNumber,
+                elements.kRange, elements.kNumber,
+                elements.extRange, elements.extNumber,
+                elements.lRange, elements.lNumber,
+                elements.aRange, elements.aNumber,
+                elements.l0Range, elements.l0Number
+            ];
+
+            allInputs.forEach(el => {
+                el.classList.remove('calculated-input');
+                el.disabled = false;
+            });
+
+            const target = state.calculationTarget;
+            if (target === 'force') {
+                elements.massRange.classList.add('calculated-input');
+                elements.massNumber.classList.add('calculated-input');
+                elements.massRange.disabled = true;
+                elements.massNumber.disabled = true;
+            } else if (target === 'extension') {
+                elements.extRange.classList.add('calculated-input');
+                elements.extNumber.classList.add('calculated-input');
+                elements.extRange.disabled = true;
+                elements.extNumber.disabled = true;
+                elements.lRange.classList.add('calculated-input');
+                elements.lNumber.classList.add('calculated-input');
+                elements.lRange.disabled = true;
+                elements.lNumber.disabled = true;
+            } else if (target === 'k') {
+                elements.kRange.classList.add('calculated-input');
+                elements.kNumber.classList.add('calculated-input');
+                elements.kRange.disabled = true;
+                elements.kNumber.disabled = true;
+            }
+        }
+
+        function calculatePhysics() {
+            // F = m * g
+            state.force = state.mass * state.g;
+
+            // Effective K
+            let effK = state.k;
+            if (state.simulationMode === 'spring') {
+                if (state.springConfig === 'parallel') effK = state.k * 2;
+                else if (state.springConfig === 'series') effK = state.k / 2;
+            }
+
+            state.extension = effK !== 0 ? state.force / effK : 0;
+
+            if (state.springConfig === 'compare') {
+                state.refExtension = state.refK !== 0 ? state.force / state.refK : 0;
+            } else {
+                state.refExtension = 0;
+            }
+
+            state.stress = state.area !== 0 ? state.force / state.area : 0;
+            state.epe = 0.5 * state.force * state.extension;
+        }
+
+        window.syncInputs = function(key, value, source) {
+            const val = value === '' ? 0 : parseFloat(value);
+            state[key] = isNaN(val) ? 0 : val;
+
+            const updateEl = (el, v) => {
+                if (el && el !== source && document.activeElement !== el) el.value = v;
+            };
+
+            const target = state.calculationTarget;
+
+            if (target === 'force') {
+                if (key === 'totalLength') state.extensionInput = state.totalLength - state.l0;
+                else if (key === 'l0' || key === 'extensionInput') state.totalLength = state.l0 + state.extensionInput;
+
+                let effK = state.k;
+                if (state.simulationMode === 'spring') {
+                    if (state.springConfig === 'parallel') effK = state.k * 2;
+                    else if (state.springConfig === 'series') effK = state.k / 2;
+                }
+                state.force = effK * state.extensionInput;
+                state.mass = state.force / state.g;
+            } else if (target === 'extension') {
+                state.force = state.mass * state.g;
+                let effK = state.k;
+                if (state.simulationMode === 'spring') {
+                    if (state.springConfig === 'parallel') effK = state.k * 2;
+                    else if (state.springConfig === 'series') effK = state.k / 2;
+                }
+                state.extensionInput = effK !== 0 ? state.force / effK : 0;
+                state.totalLength = state.l0 + state.extensionInput;
+            } else if (target === 'k') {
+                state.force = state.mass * state.g;
+                if (key === 'totalLength') state.extensionInput = state.totalLength - state.l0;
+                else if (key === 'l0' || key === 'extensionInput') state.totalLength = state.l0 + state.extensionInput;
+
+                state.k = state.extensionInput !== 0 ? state.force / state.extensionInput : 0;
+                // If parallel or series, the 'k' input is the individual spring constant
+                if (state.simulationMode === 'spring') {
+                    if (state.springConfig === 'parallel') state.k /= 2;
+                    else if (state.springConfig === 'series') state.k *= 2;
+                }
+            }
+
+            // Sync all sliders/numbers
+            updateEl(elements.massRange, state.mass);
+            updateEl(elements.massNumber, state.mass);
+            updateEl(elements.kRange, state.k);
+            updateEl(elements.kNumber, state.k);
+            updateEl(elements.refKRange, state.refK);
+            updateEl(elements.refKNumber, state.refK);
+            updateEl(elements.extRange, state.extensionInput);
+            updateEl(elements.extNumber, state.extensionInput);
+            updateEl(elements.lRange, state.totalLength);
+            updateEl(elements.lNumber, state.totalLength);
+            updateEl(elements.aRange, state.area);
+            updateEl(elements.aNumber, state.area);
+            updateEl(elements.l0Range, state.l0);
+            updateEl(elements.l0Number, state.l0);
+
+            calculatePhysics();
+            updateUI();
+        }
+
+        const OBJECTS = { none: 0, apple: 0.1, bowling: 7.0, car: 1200 };
+        const MATERIALS = {
+            custom: { k: 100, area: 0.001 },
+            steel: { k: 2000, area: 0.0001 },
+            copper: { k: 1100, area: 0.0001 },
+            rubber: { k: 50, area: 0.001 }
+        };
+
+        function updateUI() {
+            elements.forceRes.textContent = state.force.toFixed(2);
+            elements.extRes.textContent = state.extension.toFixed(3);
+            elements.epeRes.textContent = state.epe.toFixed(3);
+            elements.stressRes.textContent = state.stress.toExponential(2);
+
+            elements.kVal.textContent = state.k.toFixed(1);
+            elements.refKVal.textContent = state.refK.toFixed(1);
+            elements.l0Val.textContent = state.l0.toFixed(2);
+            elements.aVal.textContent = state.area.toExponential(3);
+            elements.extVal.textContent = state.extensionInput.toFixed(3);
+            elements.lVal.textContent = state.totalLength.toFixed(2);
+        }
+
+        // --- Interaction Logic ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let isDragging = false;
+        const dragOffset = new THREE.Vector3();
+
+        function setupInteractions() {
+            container.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+        }
+
+        function onMouseDown(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(weight);
+
+            if (intersects.length > 0) {
+                isDragging = true;
+                controls.enabled = false;
+
+                // Align drag plane to camera and through the weight
+                dragPlane.position.copy(weight.localToWorld(new THREE.Vector3()));
+                dragPlane.lookAt(camera.position);
+
+                const planeIntersects = raycaster.intersectObject(dragPlane);
+                if (planeIntersects.length > 0) {
+                    dragOffset.copy(planeIntersects[0].point).sub(dragPlane.position);
+                }
+            }
+        }
+
+        function onMouseMove(event) {
+            if (!isDragging) return;
+
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(dragPlane);
+
+            if (intersects.length > 0) {
+                const targetPoint = intersects[0].point.sub(dragOffset);
+
+                // Weight is in springGroup (rotated 180 on X)
+                // World position to local position
+                const localPos = springGroup.worldToLocal(targetPoint.clone());
+
+                // Dragging only changes height (Y in local space)
+                const newTotalLength = Math.max(state.l0 + 0.01, localPos.y - 0.25);
+                const newExt = newTotalLength - state.l0;
+
+                // Update state based on dragging
+                // If dragging, we temporarily treat extension as the input to update everything else
+                const oldTarget = state.calculationTarget;
+                state.calculationTarget = 'extension'; // Force extension update
+                window.syncInputs('extensionInput', newExt);
+                state.calculationTarget = oldTarget;
+
+                if (Math.abs(newExt - state.extension) > 0.01) {
+                    playCreak();
+                }
+            }
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            controls.enabled = true;
+        }
+
+        // --- Events ---
+        function setupUI() {
+            const inputs = [
+                { id: 'mass', key: 'mass' },
+                { id: 'k', key: 'k' },
+                { id: 'l0', key: 'l0' },
+                { id: 'a', key: 'area' },
+                { id: 'refK', key: 'refK' },
+                { id: 'ext', key: 'extensionInput' },
+                { id: 'l', key: 'totalLength' }
+            ];
+            inputs.forEach(item => {
+                const range = document.getElementById(item.id + 'Range');
+                const num = document.getElementById(item.id + 'Number');
+                if (range) range.addEventListener('input', (e) => syncInputs(item.key, e.target.value, e.target));
+                if (num) num.addEventListener('input', (e) => syncInputs(item.key, e.target.value, e.target));
+            });
+
+            elements.calculationToggle.addEventListener('click', (e) => {
+                if (e.target.dataset.calc) {
+                    state.calculationTarget = e.target.dataset.calc;
+                    Array.from(elements.calculationToggle.children).forEach(b => b.classList.toggle('active', b === e.target));
+                    updateCalculatedStyles();
+                    syncInputs('mass', state.mass); // Trigger refresh
+                }
+            });
+
+            document.getElementById('objectGallery').addEventListener('click', (e) => {
+                if (e.target.dataset.object) {
+                    state.hangingObject = e.target.dataset.object;
+                    if (state.hangingObject !== 'none') {
+                        state.mass = OBJECTS[state.hangingObject];
+                        calculatePhysics();
+                    }
+                    Array.from(e.currentTarget.children).forEach(b => b.classList.toggle('active', b === e.target));
+                    updateUI();
+                }
+            });
+
+            document.getElementById('modeToggle').addEventListener('click', (e) => {
+                if (e.target.dataset.mode) {
+                    state.simulationMode = e.target.dataset.mode;
+                    document.body.className = state.simulationMode === 'spring' ? 'mode-hooke' : '';
+                    Array.from(e.currentTarget.children).forEach(b => b.classList.toggle('active', b === e.target));
+                    calculatePhysics();
+                    updateUI();
+                }
+            });
+
+            document.getElementById('configToggle').addEventListener('click', (e) => {
+                if (e.target.dataset.config) {
+                    state.springConfig = e.target.dataset.config;
+                    document.body.classList.toggle('mode-compare', state.springConfig === 'compare');
+                    refSpringGroup.visible = state.springConfig === 'compare';
+
+                    // Reposition main spring if comparing
+                    springGroup.position.x = state.springConfig === 'compare' ? -1.5 : 0;
+                    hPost.scale.x = state.springConfig === 'compare' ? 2 : 1;
+
+                    Array.from(e.currentTarget.children).forEach(b => b.classList.toggle('active', b === e.target));
+                    calculatePhysics();
+                    updateUI();
+                }
+            });
+
+            document.getElementById('envToggle').addEventListener('click', (e) => {
+                if (e.target.dataset.env) {
+                    state.env = e.target.dataset.env;
+                    Array.from(e.currentTarget.children).forEach(b => b.classList.toggle('active', b === e.target));
+                    updateEnv();
+                }
+            });
+        }
+
+        function updateEnv() {
+            if (state.env === 'mars') {
+                scene.background = new THREE.Color(0x7c2d12);
+                scene.fog = new THREE.Fog(0x7c2d12, 5, 20);
+                floor.material.color.setHex(0x9a3412);
+                state.g = 3.7;
+            } else if (state.env === 'grid') {
+                scene.background = new THREE.Color(0x0f172a);
+                scene.fog = null;
+                floor.material.color.setHex(0x1e293b);
+                state.g = 9.8;
+            } else {
+                scene.background = new THREE.Color(0xf1f5f9);
+                scene.fog = null;
+                floor.material.color.setHex(0xe2e8f0);
+                state.g = 9.8;
+            }
+            calculatePhysics();
+            updateUI();
+        }
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Damping
+            const k_vis = 0.15;
+            const d_vis = 0.8;
+
+            const f_vis = (state.extension - visualState.extension) * k_vis;
+            visualState.velocity += f_vis;
+            visualState.velocity *= d_vis;
+            visualState.extension += visualState.velocity;
+
+            const rf_vis = (state.refExtension - visualState.refExtension) * k_vis;
+            visualState.refVelocity += rf_vis;
+            visualState.refVelocity *= d_vis;
+            visualState.refExtension += visualState.refVelocity;
+
+            updateVisuals();
+            renderer.render(scene, camera);
+        }
+
+        // --- Initialization ---
+        setupUI();
+        setupInteractions();
+        calculatePhysics();
+        updateCalculatedStyles();
+        updateUI();
+        updateEnv();
+        animate();
+
+        // Theme Toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
         });
 
-        coilsRange.addEventListener('input', (e) => {
-            updateSpring(parseFloat(extRange.value), parseInt(e.target.value));
-        });
-
-        // Resize handler
         window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
         });
-
-        // Animation Loop
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-
-        animate();
-
-        // Theme Management
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-theme', theme);
-            updateTheme();
-
-            document.getElementById('themeToggle').addEventListener('click', () => {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateTheme();
-            });
-        }
-
-        function updateTheme() {
-            const theme = document.documentElement.getAttribute('data-theme');
-            if (theme === 'dark') {
-                scene.background = new THREE.Color(0x0f172a);
-                floor.material.color.setHex(0x1e293b);
-            } else {
-                scene.background = new THREE.Color(0xf8fafc);
-                floor.material.color.setHex(0xe2e8f0);
-            }
-        }
-
-        initTheme();
 
     </script>
 </body>
