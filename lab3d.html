@@ -308,8 +308,8 @@
             <div class="control-group">
                 <label>Calculation Target</label>
                 <div class="toggle-group" id="calculationToggle">
-                    <button class="toggle-btn active" data-calc="force">Force</button>
-                    <button class="toggle-btn" data-calc="extension">Ext.</button>
+                    <button class="toggle-btn" data-calc="force">Force</button>
+                    <button class="toggle-btn active" data-calc="extension">Ext.</button>
                     <button class="toggle-btn" data-calc="k">k / E</button>
                 </div>
             </div>
@@ -455,7 +455,7 @@
             strain: 0,
             youngsModulus: 0,
             epe: 0,
-            calculationTarget: 'force',
+            calculationTarget: 'extension',
             env: 'lab'
         };
 
@@ -617,19 +617,22 @@
             const currentL = (state.l0 + visualState.extension);
             const refCurrentL = (state.l0 + visualState.refExtension);
             const coils = 15;
+            // Visual thickness scales with K
+            const springWireR = 0.01 + Math.sqrt(state.k) * 0.001;
+            const refSpringWireR = 0.01 + Math.sqrt(state.refK) * 0.001;
 
             if (state.simulationMode === 'spring') {
                 if (state.springConfig === 'single') {
-                    addSpring(springGroup, springs, 0, 0.2, currentL, coils, materials.spring);
+                    addSpring(springGroup, springs, 0, 0.2, currentL, coils, materials.spring, 0, springWireR);
                 } else if (state.springConfig === 'parallel') {
-                    addSpring(springGroup, springs, -0.3, 0.15, currentL, coils, materials.spring);
-                    addSpring(springGroup, springs, 0.3, 0.15, currentL, coils, materials.spring);
+                    addSpring(springGroup, springs, -0.3, 0.15, currentL, coils, materials.spring, 0, springWireR * 0.8);
+                    addSpring(springGroup, springs, 0.3, 0.15, currentL, coils, materials.spring, 0, springWireR * 0.8);
                 } else if (state.springConfig === 'series') {
-                    addSpring(springGroup, springs, 0, 0.2, currentL / 2, coils, materials.spring, 0);
-                    addSpring(springGroup, springs, 0, 0.2, currentL / 2, coils, materials.spring, currentL / 2);
+                    addSpring(springGroup, springs, 0, 0.2, currentL / 2, coils, materials.spring, 0, springWireR);
+                    addSpring(springGroup, springs, 0, 0.2, currentL / 2, coils, materials.spring, currentL / 2, springWireR);
                 } else if (state.springConfig === 'compare') {
-                    addSpring(springGroup, springs, 0, 0.2, currentL, coils, materials.spring);
-                    addSpring(refSpringGroup, refSprings, 0, 0.2, refCurrentL, coils, materials.refSpring);
+                    addSpring(springGroup, springs, 0, 0.2, currentL, coils, materials.spring, 0, springWireR);
+                    addSpring(refSpringGroup, refSprings, 0, 0.2, refCurrentL, coils, materials.refSpring, 0, refSpringWireR);
                 }
             } else {
                 // Wire mode
@@ -666,9 +669,9 @@
             refWeight.scale.set(scale, scale, scale);
         }
 
-        function addSpring(group, list, x, radius, height, coils, mat, yOffset = 0) {
+        function addSpring(group, list, x, radius, height, coils, mat, yOffset = 0, wireRadius = 0.02) {
             const curve = new HelixCurve(radius, height, coils);
-            const tubeGeo = new THREE.TubeGeometry(curve, 100, 0.02, 8, false);
+            const tubeGeo = new THREE.TubeGeometry(curve, 100, wireRadius, 8, false);
             const mesh = new THREE.Mesh(tubeGeo, mat);
             mesh.position.x = x;
             mesh.position.y = yOffset;
