@@ -315,6 +315,16 @@
             </div>
 
             <div class="control-group">
+                <label>Material Preset</label>
+                <div class="preset-grid" id="materialPresets">
+                    <button class="preset-btn active" data-preset="custom">Custom</button>
+                    <button class="preset-btn" data-preset="steel">Steel</button>
+                    <button class="preset-btn" data-preset="copper">Copper</button>
+                    <button class="preset-btn" data-preset="rubber">Rubber</button>
+                </div>
+            </div>
+
+            <div class="control-group">
                 <label>Object Variant</label>
                 <div class="preset-grid" id="objectGallery">
                     <button class="preset-btn active" data-object="none">None</button>
@@ -931,9 +941,9 @@
                 const newExt = newTotalLength - state.l0;
 
                 // Update state based on dragging
-                // If dragging, we temporarily treat extension as the input to update everything else
+                // If dragging, we temporarily treat force as the target so extension can be an input
                 const oldTarget = state.calculationTarget;
-                state.calculationTarget = 'extension'; // Force extension update
+                state.calculationTarget = 'force';
                 window.syncInputs('extensionInput', newExt);
                 state.calculationTarget = oldTarget;
 
@@ -972,6 +982,19 @@
                     Array.from(elements.calculationToggle.children).forEach(b => b.classList.toggle('active', b === e.target));
                     updateCalculatedStyles();
                     syncInputs('mass', state.mass); // Trigger refresh
+                }
+            });
+
+            document.getElementById('materialPresets').addEventListener('click', (e) => {
+                if (e.target.dataset.preset) {
+                    const preset = e.target.dataset.preset;
+                    if (preset !== 'custom') {
+                        const props = MATERIALS[preset];
+                        window.syncInputs('k', props.k);
+                        window.syncInputs('area', props.area);
+                    }
+                    Array.from(e.currentTarget.children).forEach(b => b.classList.toggle('active', b === e.target));
+                    updateUI();
                 }
             });
 
@@ -1066,6 +1089,7 @@
         }
 
         // --- Initialization ---
+        window.state = state;
         setupUI();
         setupInteractions();
         calculatePhysics();
